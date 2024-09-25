@@ -4,7 +4,6 @@
 
 ## About this app
 
-
 This App was developed for an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
 
 ---
