@@ -7,6 +7,7 @@ from janitor import clean_names
 import pickle
 import os
 from sklearn.preprocessing import LabelEncoder
+
 class Capturing(list):
     def __enter__(self):
         self._stdout = sys.stdout
@@ -18,13 +19,16 @@ class Capturing(list):
         sys.stdout = self._stdout
 
 def read_markdown_file(markdown_file):
+    """Read a md file and return the content"""
     return Path(markdown_file).read_text()
 
 def writeout(df: pd.DataFrame):
+    """Write a pd.DataFrame to csv. To use with st.download_button()"""
     df = clean_names(df)
     return df.to_csv(index=False).encode('utf-8')
 
 def write_equation(factors, response, order=1, quadratic=[], dtypes=None):
+    """Write R-style equation for multivariate fitting procedure using the statsmodels package"""
     myfactors = factors.copy()
     if dtypes is not None:
         print(dtypes)
@@ -53,7 +57,7 @@ def write_equation(factors, response, order=1, quadratic=[], dtypes=None):
         st.warning("Only orders below 5 can be consedired.")
     if len(quadratic)>0:
         for factor in quadratic:
-            eqn += f'+ np.power({factor}, 2) '
+            eqn += f'+ I({factor}**2) '
     return eqn
 
 about_items={
@@ -106,6 +110,7 @@ def decode_data(data, factors, dtypes, encoders):
         if dtypes[factor] == 'object':
             data[factor] = encoders[factor].inverse_transform([round(f) for f in data[factor]])
     return data
+
 
 def clear_models():
     st.cache_resource.clear()

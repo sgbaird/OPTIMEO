@@ -142,7 +142,7 @@ To remove the intercept, add '-1' at the end of the equation.""")
         # res = res[order]
         colors = ['red' if x < 0 else 'green' for x in res['slope']]
         res['slope'] = res['slope'].abs()
-        ax.barh(res['terms'], res['slope'], xerr=res['error'], color=colors)
+        ax.barh([term.replace('I(', '').replace(')', '').replace(' ** ', '^') for term in res['terms']], res['slope'], xerr=res['error'], color=colors)
         ax.set_xlabel('Magnitude of effect')
         ax.set_xscale('log')
         red_patch = mpatches.Patch(color='red', label='Negative')
