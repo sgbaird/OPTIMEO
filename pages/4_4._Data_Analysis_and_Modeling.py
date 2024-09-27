@@ -123,6 +123,7 @@ with tabs[2]: # simple model
         cols = st.columns([1,1,4])
         order = cols[0].number_input("Interactions order:", 
                                         min_value=1, value=1, max_value=len(factors))
+        specific = cols[0].multiselect("Specific interactions:", )
         quadratic = cols[1].multiselect("Quadratic terms?", factors)
         def_eqn = write_equation(factors, response, order, quadratic, dtypes)
         eqn = cols[2].text_input("Model equation:", key="eqn", value=def_eqn, help="""Interactions are written as 'factor1\:factor2'.  

@@ -10,6 +10,8 @@ from sklearn.preprocessing import LabelEncoder
 from pyDOE3 import *
 from ressources.functions import about_items
 import matplotlib.pyplot as plt
+import definitive_screening_design as dsd
+
 
 help = read_markdown_file("pages/help-doe.md")
 
@@ -29,7 +31,7 @@ st.write("""
 """)
 
 design_type = st.sidebar.selectbox("Design type",
-        ['Full Factorial', 'Fractional Factorial', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
+        ['Full Factorial', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
 
 if design_type == 'Optimal':
     model_order = st.sidebar.selectbox("Model order:", 
@@ -95,6 +97,9 @@ elif design_type=='Fractional Factorial':
     reduction = st.sidebar.number_input("Reduction:", min_value=2, max_value=Npars+1, value=2)
     design = gsd([len(par['values']) for par in parameters], reduction)
     design = pd.DataFrame(design, columns=[par['name'] for par in parameters])
+elif design_type=='Definitive Screening Design':
+    params = {par['name']:[np.min(par['values']), np.max(par['values'])] for par in parameters}
+    design = dsd.generate(factors_dict = params)
 elif design_type=='Space Filling Latin Hypercube':
     design_base = build.space_filling_lhs(pars)
     Nmin = len(design_base)
