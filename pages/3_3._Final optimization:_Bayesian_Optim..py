@@ -37,8 +37,10 @@ with tabs[0]:
         mincol = 1 if 'run_order' in cols else 0
         factors = right.multiselect("Select the factors columns:", 
                 data.columns, default=cols[mincol:-1])
+        # response cannut be a factor, so default are all unselected columns in factor
+        available = [col for col in cols if col not in factors]
         response = right.multiselect("Select the response column:", 
-                data.columns, default=cols[-1], max_selections=1)
+                available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
         data, encoders, dtypes = encode_data(data, factors)

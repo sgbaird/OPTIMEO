@@ -31,6 +31,17 @@ if 'launch' not in st.session_state:
 if 'fitted' not in st.session_state:
     st.session_state['fitted'] = 0
 
+def write_poly(pp):
+    signs = [np.sign(x) for x in pp]
+    p = np.array([f"{x:.2e}" for x in pp])
+    p = [x.split("e") for x in p]
+    p = [f"{x[0]}\cdot10^{{{int(x[1])}}}" for x in p]
+    p = [x.replace(f'\cdot10^{{0}}', '') for x in p]
+    out = f"$y = {p[0]}x^2"
+    out += f"{'' if signs[1]<0 else '+'} {p[1]}x"
+    out += f"{'' if signs[2]<0 else '+'} {p[2]}$"
+    return(out)
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # Definition of User Interface
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -53,8 +64,10 @@ with tabs[0]: # data loading
         mincol = 1 if 'run_order' in cols else 0
         factors = right.multiselect("Select the factors columns:", 
                 data.columns, default=cols[mincol:-1])
+        # response cannut be a factor, so default are all unselected columns in factor
+        available = [col for col in cols if col not in factors]
         response = right.multiselect("Select the response column:", 
-                data.columns, default=cols[-1], max_selections=1)
+                available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
         dtypes = data.dtypes
@@ -95,9 +108,9 @@ with tabs[1]: # visual assessment
             ax.scatter(data[factor], data[response], s=100)
             # add linear regression with red line and equation
             if dtypes[factor] != 'object':
-                m, b = np.polyfit(data[factor], data[response], 1)
-                ax.plot(data[factor], m*data[factor] + b, color='red')
-                ax.set_title(f"y = {m:.2f}x + {b:.2f}", fontsize=20)
+                p = np.polyfit(data[factor], data[response], 2)
+                ax.plot(np.linspace(np.min(data[factor]),np.max(data[factor]),100), np.polyval(p, np.linspace(np.min(data[factor]),np.max(data[factor]),100)), color='red')
+                ax.set_title(write_poly(p), fontsize=20)
             ax.set_xlabel(factor)
             ax.set_ylabel(response)
             fig.tight_layout()
