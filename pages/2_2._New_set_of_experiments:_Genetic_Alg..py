@@ -34,10 +34,14 @@ with tabs[0]:
         mincol = 1 if 'run_order' in cols else 0
         factors = right.multiselect("Select the factors columns:", 
                 data.columns, default=cols[mincol:-1])
+        # response cannut be a factor, so default are all unselected columns in factor
+        available = [col for col in cols if col not in factors]
         response = right.multiselect("Select the response column:", 
-                data.columns, default=cols[-1], max_selections=1)
-        max_response = right.number_input(f"Targetted Maximum value of {response[0]}:", value=np.max(data[response]), help=f"""The expected maximum and minimum values of the {response[0]} variable is used to normalize the data between 0 and 1.""")
-        min_response = right.number_input(f"Minimum value of {response[0]}:", value=0, help=f"""The expected maximum and minimum values of the {response[0]} variable is used to normalize the data between 0 and 1.""")
+                available, default=available[-1], max_selections=1)
+        max_response = right.number_input(f"Targetted Maximum value of {response[0] if len(response) > 0 else 'response'}:", value=np.max(data[response]) if len(response) > 0 else 1, 
+                    help=f"""The expected maximum and minimum values of the {response[0] if len(response) > 0 else 'response'} variable is used to normalize the data between 0 and 1.""")
+        min_response = right.number_input(f"Minimum value of {response[0] if len(response) > 0 else 'response'}:", value=0, 
+                    help=f"""The expected maximum and minimum values of the {response[0] if len(response) > 0 else 'response'} variable is used to normalize the data between 0 and 1.""")
         # data[response] needs to be normalized between 0 and 1
         data[response] = (data[response] - min_response) / (max_response - min_response)
         if len(response) > 0:
@@ -46,7 +50,7 @@ with tabs[0]:
 
 
 with tabs[1]:
-    if data is not None:
+    if data is not None and len(factors) > 0 and len(response) > 0:
         left, right = st.columns([3,1])
         mutation_slider = right.slider("Mutation shrink factor (10^x)", 
                                     key="mutation_slider",
