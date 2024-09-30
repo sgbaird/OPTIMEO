@@ -18,6 +18,9 @@ st.markdown(style, unsafe_allow_html=True)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 st.write("""
 # New experimental plan using Genetic Algorithm
+
+This is directly taken from [SycoFinder](https://github.com/materialscloud-org/sycofinder). I just adapted it to work with Streamlit.  
+Not exactly sure what it does, still have to dig into it... probably best to use [Bayesian Optimization](3._Final_optimization:_Bayesian_Optim.) instead.
 """)
 
 

@@ -43,6 +43,18 @@ with tabs[0]:
                 available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
+        # add option to change type of columns
+        dtypesF = data[factors].dtypes
+        categ = right.multiselect("Categorical factors", factors, 
+            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'object'])
+        floats = right.multiselect("Float factors", factors, 
+            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'float64'])
+        integers = right.multiselect("Integer factors", factors, 
+            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'int64'])
+        # change the type of the columns accordingly
+        data[categ] = data[categ].astype('object')
+        data[floats] = data[floats].astype('float64')
+        data[integers] = data[integers].astype('int64')
         data, encoders, dtypes = encode_data(data, factors)
 
 
@@ -51,6 +63,19 @@ with tabs[1]:
         Nexp = st.sidebar.number_input("Number of experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.")
+        # fix a parameter value
+        fixpar = st.sidebar.multiselect("Fix a parameter value", factors,
+                help="Select a parameter to fix its value in the optimization.")
+        fixparval = [None]*len(fixpar)
+        if len(fixpar)>0:
+            for i,par in enumerate(fixpar):
+                if dtypes[par] == 'object':
+                    fixparval[i] = st.sidebar.selectbox(f"Value of {par}", 
+                                data[par].unique(), key=f"fixpar{i}")
+                else:
+                    fixparval[i] = st.sidebar.number_input(f"Value of {par}", 
+                                    value=np.mean(data[par]), key=f"fixpar{i}")
+        fixedparval = {par: val for par,val in zip(fixpar, fixparval)}
         X = data[factors].values
         y = data[response].values
         # Standardize the input feature
@@ -76,11 +101,16 @@ with tabs[1]:
             trials = [None]*len(factors)
             for i,factor in enumerate(factors):
                 if dtypes[factor] == 'object':
-                    trials[i] = trial.suggest_categorical(factor, data[factor].unique())
+                    suggestions = data[factor].unique() if factor not in fixpar else [fixedparval[factor]]
+                    trials[i] = trial.suggest_categorical(factor, suggestions)
                 elif dtypes[factor] == 'int':
-                    trials[i] = trial.suggest_int(factor, np.min(data[factor]), np.max(data[factor]))
+                    Min = np.min(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    Max = np.max(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    trials[i] = trial.suggest_int(factor, Min, Max)
                 else:
-                    trials[i] = trial.suggest_float(factor, np.min(data[factor]), np.max(data[factor]))
+                    Min = np.min(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    Max = np.max(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    trials[i] = trial.suggest_float(factor, Min, Max)
             trials = np.array(trials).reshape(1, -1)
             # Evaluate the objective function
             resp = evaluate_objective(trials)
@@ -142,5 +172,18 @@ with tabs[1]:
                 ax.set_xticklabels(labels)
             fig.tight_layout()
             cols[i%ncols].pyplot(fig)
+            
+        plt.rcParams.update({'font.size': 22})
+        cols = st.columns(len(factors)-1)
+        for i,faci in enumerate(factors):
+            for j,facj in enumerate(factors):
+                if j>i:
+                    fig, ax = plt.subplots()
+                    ax.scatter(data[facj], data[faci], s=100)
+                    ax.scatter(best_params[facj], best_params[faci], s=100, color='red')
+                    ax.set_ylabel(faci)
+                    ax.set_xlabel(facj)
+                    fig.tight_layout()
+                    cols[j-1].pyplot(fig)
 
 
