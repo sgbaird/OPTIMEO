@@ -9,6 +9,7 @@ from sklearn.gaussian_process.kernels import RBF
 import matplotlib.pyplot as plt
 from ressources.functions import about_items
 from sklearn.preprocessing import LabelEncoder
+from datetime import datetime
 
 st.set_page_config(page_title="New set of experiments using Bayesian Optimisation",
                    page_icon="📈", layout="wide", menu_items=about_items)
@@ -64,14 +65,23 @@ with tabs[1]:
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.")
         # fix a parameter value
+        samplerchoice = st.sidebar.selectbox("Select the sampler", ["TPE", "NSGAII", "Base"], help="""### Select the sampler to use for the optimization.  
+- **TPE:** Tree-structured Parzen Estimator. This will tend to explore the parameter space more efficiently (exploitation).
+- **NSGAII:** Non-dominated Sorting Genetic Algorithm II. This will tend to explore the parameter space more uniformly (exploration).
+- **Base:** Base sampler. This will tend to explore the parameter space uniformly.""")
+        sampler_list = {"TPE": optuna.samplers.TPESampler,
+                        "NSGAII": optuna.samplers.NSGAIISampler,
+                        "Base": optuna.samplers.BaseSampler}
         fixpar = st.sidebar.multiselect("Fix a parameter value", factors,
                 help="Select a parameter to fix its value in the optimization.")
         fixparval = [None]*len(fixpar)
         if len(fixpar)>0:
             for i,par in enumerate(fixpar):
                 if dtypes[par] == 'object':
-                    fixparval[i] = st.sidebar.selectbox(f"Value of {par}", 
-                                data[par].unique(), key=f"fixpar{i}")
+                    cases = encoders[par].inverse_transform([round(f) for f in data[par].unique()])
+                    fixparval[i] = st.sidebar.selectbox(f"Value of {par}", cases, 
+                                                        key=f"fixpar{i}")
+                    fixparval[i] = encoders[par].transform([fixparval[i]])[0]
                 else:
                     fixparval[i] = st.sidebar.number_input(f"Value of {par}", 
                                     value=np.mean(data[par]), key=f"fixpar{i}")
@@ -119,7 +129,11 @@ with tabs[1]:
         # Perform Bayesian optimization
         cols = st.columns([1,3])
         direction = cols[0].radio("Select the direction to optimize:", ["Maximize", "Minimize"])
-        study = optuna.create_study(direction=direction.lower())
+        if samplerchoice == "Base":
+            study = optuna.create_study(direction=direction.lower())
+        else:
+            sampler = sampler_list[samplerchoice]()
+            study = optuna.create_study(direction=direction.lower(), sampler=sampler)
         study.optimize(objective, n_trials=100, n_jobs=-1)
 
         # Get the best hyperparameters
@@ -140,6 +154,24 @@ with tabs[1]:
         outdf = decode_data(outdf, factors, dtypes, encoders)
         cols[1].write("New parameters to try and expected response:")
         cols[1].dataframe(outdf, hide_index=True)
+        
+        timestamp = datetime.today().strftime('%Y-%m-%d_%H:%M:%S')
+        df_new = outdf.copy()
+        df_new['run_order'] = np.arange(1, len(df_new)+1)
+        df_new['run_order'] = np.random.permutation(df_new['run_order'])
+        colos = df_new.columns.tolist()
+        colos = colos[-1:] + colos[:-1]
+        df_new = df_new[colos]
+        # add an empty "response" column to the design
+        df_new['response'] = ''
+        outfile = writeout(df_new)
+        cols[0].download_button(
+            label     = f"Download new Experimental Design with {len(df_new)} runs",
+            data      = outfile,
+            file_name = f'newDOE_{timestamp}.csv',
+            mime      = 'text/csv',
+            key       = 'download-csv'
+        )
 
         ncols = np.min([len(factors),4])
         cols = st.columns(int(ncols))
