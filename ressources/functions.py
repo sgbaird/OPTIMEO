@@ -65,7 +65,7 @@ about_items={
         'Report a bug': "https://lmi.cnrs.fr/author/colin-bousige/",
         'About': """
         ## MOFSONG Optimizer
-        Version date 2024-09-11.
+        Version date 2024-10-01.
 
         This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
         """

@@ -1,9 +1,6 @@
 # run with "streamlit run Home.py"
 
 import streamlit as st
-import numpy as np
-import matplotlib.pyplot as plt
-import pandas as pd
 from ressources.functions import *
 from ressources.functions import about_items
 
