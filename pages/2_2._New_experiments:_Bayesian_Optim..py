@@ -246,6 +246,4 @@ with tabs[1]:
                     fig.tight_layout()
                     cols[j-1].pyplot(fig)
 
-        fig = optuna.visualization.plot_optimization_history(study)
-        st.write(fig)
 
