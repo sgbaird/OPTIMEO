@@ -11,7 +11,6 @@ import matplotlib.pyplot as plt
 from ressources.functions import about_items
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
-from plotly.io import show
 
 st.set_page_config(page_title="New set of experiments using Bayesian Optimisation",
                    page_icon="📈", layout="wide", menu_items=about_items)
