@@ -4,7 +4,7 @@
 
 ## About this app
 
-DOE-DOA is a web application that helps you design experiments, generate new experiments, and analyze the results of your experiments. It is designed to help you optimize your process by generating a Design of Experiment (DoE) and analyzing the results of your experiments. You can also generate new experiments to optimize your process, and analyze the results of your experiments.
+[DOE-DOA](https://doe-doa.streamlit.app/) is a web application that helps you design experiments, generate new experiments, and analyze the results of your experiments. It is designed to help you optimize your process by generating a Design of Experiment (DoE) and analyzing the results of your experiments. You can also generate new experiments to optimize your process, and analyze the results of your experiments.
 
 This App was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
 

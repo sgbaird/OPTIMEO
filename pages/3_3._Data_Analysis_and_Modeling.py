@@ -23,6 +23,8 @@ st.markdown(style, unsafe_allow_html=True)
 
 if 'firstlaunch' not in st.session_state:
     st.session_state['firstlaunch'] = 1
+    if not os.path.exists("./trained_model"):
+        os.mkdir("./trained_model")
     available_models = os.listdir("./trained_model")
     for model_name in available_models:
         os.remove(f"./trained_model/{model_name}")
