@@ -25,32 +25,34 @@ st.write("""
 """)
 
 
-data = st.sidebar.file_uploader("Upload a CSV file", type=["csv"])
 
 tabs = st.tabs(["Data Loading", "Bayesian Optimization"])
 
 with tabs[0]:
+    colos = st.columns([2,3])
+    data = colos[0].file_uploader("Upload a CSV file", type=["csv"])
     if data is not None:
         data = pd.read_csv(data)
         left, right = st.columns([3,2])
         cols = data.columns.to_numpy()
-        left.dataframe(data, hide_index=True)
+        colos[1].dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
-        factors = right.multiselect("Select the factors columns:", 
+        factors = colos[0].multiselect("Select the factors columns:", 
                 data.columns, default=cols[mincol:-1])
         # response cannut be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        response = right.multiselect("Select the response column:", 
+        response = colos[0].multiselect("Select the response column:", 
                 available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
         # add option to change type of columns
         dtypesF = data[factors].dtypes
-        categ = right.multiselect("Categorical factors", factors, 
+        colos = st.columns(3)
+        categ = colos[0].multiselect("Categorical factors", factors, 
             default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'object'])
-        floats = right.multiselect("Float factors", factors, 
+        floats = colos[1].multiselect("Float factors", factors, 
             default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'float64'])
-        integers = right.multiselect("Integer factors", factors, 
+        integers = colos[2].multiselect("Integer factors", factors, 
             default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'int64'])
         # change the type of the columns accordingly
         data[categ] = data[categ].astype('object')
@@ -65,10 +67,11 @@ with tabs[1]:
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.")
         # fix a parameter value
-        samplerchoice = st.sidebar.selectbox("Select the sampler", ["TPE", "NSGAII", "Base"], help="""### Select the sampler to use for the optimization.  
+        samplerchoice = st.sidebar.selectbox("Select the sampler", ["Base", "TPE", "NSGAII"], help="""### Select the sampler to use for the optimization.  
+- **Base:** Base sampler. This will tend to explore the parameter space efficiently.
 - **TPE:** Tree-structured Parzen Estimator. This will tend to explore the parameter space more efficiently (exploitation).
 - **NSGAII:** Non-dominated Sorting Genetic Algorithm II. This will tend to explore the parameter space more uniformly (exploration).
-- **Base:** Base sampler. This will tend to explore the parameter space uniformly.""")
+""")
         sampler_list = {"TPE": optuna.samplers.TPESampler,
                         "NSGAII": optuna.samplers.NSGAIISampler,
                         "Base": optuna.samplers.BaseSampler}
@@ -140,10 +143,15 @@ with tabs[1]:
         res = study.trials_dataframe()
         res = res[res['state']=='COMPLETE']
         res = res.sort_values('value', ascending=False)
-        # remove the strin 'params_' from the column names
+        # remove the string 'params_' from the column names
         res.columns = [col.replace('params_', '') for col in res.columns]
         # take the first Nexp best parameters
-        best_params = res.head(Nexp)[factors+['value']]
+        if direction == "Maximize":
+            best_params = res.head(Nexp)[factors+['value']]
+        else:
+            best_params = res.tail(Nexp)[factors+['value']]
+            # reverse row order
+            best_params = best_params.iloc[::-1]
         # rename the value column to the response
         best_params = best_params.rename(columns={'value': f"Expected {response}"})
 
