@@ -61,10 +61,10 @@ def write_equation(factors, response, order=1, quadratic=[], dtypes=None):
     return eqn
 
 about_items={
-        'Get Help': 'https://lmi.cnrs.fr/author/colin-bousige/',
-        'Report a bug': "https://lmi.cnrs.fr/author/colin-bousige/",
+        'Get Help': 'mailto:colin.bousige@cnrs.fr',
+        'Report a bug': "mailto:colin.bousige@cnrs.fr",
         'About': """
-        ## MOFSONG Optimizer
+        ## DOE-DOA
         Version date 2024-10-01.
 
         This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
