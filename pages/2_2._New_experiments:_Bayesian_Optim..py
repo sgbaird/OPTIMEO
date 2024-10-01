@@ -4,12 +4,14 @@ import optuna
 import pandas as pd
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.ensemble import RandomForestRegressor
 from sklearn.preprocessing import StandardScaler
 from sklearn.gaussian_process.kernels import RBF
 import matplotlib.pyplot as plt
 from ressources.functions import about_items
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
+from plotly.io import show
 
 st.set_page_config(page_title="New set of experiments using Bayesian Optimisation",
                    page_icon="📈", layout="wide", menu_items=about_items)
@@ -66,17 +68,20 @@ with tabs[1]:
         Nexp = st.sidebar.number_input("Number of experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.")
-        # fix a parameter value
-        samplerchoice = st.sidebar.selectbox("Select the sampler", ["Base", "TPE", "NSGAII"], help="""### Select the sampler to use for the optimization.  
-- **Base:** Base sampler. This will tend to explore the parameter space efficiently.
+        model_selection = st.sidebar.selectbox("Select the model", ["Gaussian Process", "Random Forest"],
+                help="""### Select the model to use for the optimization.
+- **Gaussian Process:** This model will provide an estimate of the response and its uncertainty.
+- **Random Forest:** This model will provide an estimate of the response without uncertainty.
+""")
+        samplerchoice = st.sidebar.selectbox("Select the sampler", ["TPE", "NSGAII"], help="""### Select the sampler to use for the optimization.  
 - **TPE:** Tree-structured Parzen Estimator. This will tend to explore the parameter space more efficiently (exploitation).
 - **NSGAII:** Non-dominated Sorting Genetic Algorithm II. This will tend to explore the parameter space more uniformly (exploration).
 """)
         sampler_list = {"TPE": optuna.samplers.TPESampler,
-                        "NSGAII": optuna.samplers.NSGAIISampler,
-                        "Base": optuna.samplers.BaseSampler}
+                        "NSGAII": optuna.samplers.NSGAIISampler}
         fixpar = st.sidebar.multiselect("Fix a parameter value", factors,
                 help="Select a parameter to fix its value in the optimization.")
+        # fix a parameter value
         fixparval = [None]*len(fixpar)
         if len(fixpar)>0:
             for i,par in enumerate(fixpar):
@@ -96,17 +101,21 @@ with tabs[1]:
         X_scaled = scaler.fit_transform(X)
         # Train Gaussian Process Regressor
         # kernel = RBF(length_scale_bounds='fixed', length_scale=0.25) 
-        gp_model = GaussianProcessRegressor(n_restarts_optimizer=10, 
-                                            # kernel=kernel,
-                                            random_state=12345)
-        gp_model.fit(X_scaled, y)
+        if model_selection == "Gaussian Process":
+            model = GaussianProcessRegressor(n_restarts_optimizer=10, 
+                                             random_state=12345)
+        else:
+            model = RandomForestRegressor(n_estimators=200, 
+                                          n_jobs=-1, random_state=12345)
+        model.fit(X_scaled, y)
 
         # Objective function to maximize
         def evaluate_objective(X):
-            # Prepare input for prediction and scale
             X_pred = scaler.transform(X)
-            # Predict B/C using Gaussian Process Regressor
-            response_pred, _ = gp_model.predict(X_pred, return_std=True)
+            if model_selection == "Gaussian Process":
+                response_pred, _ = model.predict(X_pred, return_std=True)
+            else:
+                response_pred = model.predict(X_pred)
             return response_pred[0]
 
         def objective(trial):
@@ -132,13 +141,11 @@ with tabs[1]:
         # Perform Bayesian optimization
         cols = st.columns([1,3])
         direction = cols[0].radio("Select the direction to optimize:", ["Maximize", "Minimize"])
-        if samplerchoice == "Base":
-            study = optuna.create_study(direction=direction.lower())
-        else:
-            sampler = sampler_list[samplerchoice]()
-            study = optuna.create_study(direction=direction.lower(), sampler=sampler)
+        sampler = sampler_list[samplerchoice]()
+        study = optuna.create_study(direction=direction.lower(), sampler=sampler)
+        
         study.optimize(objective, n_trials=100, n_jobs=-1)
-
+        
         # Get the best hyperparameters
         res = study.trials_dataframe()
         res = res[res['state']=='COMPLETE']
@@ -154,6 +161,16 @@ with tabs[1]:
             best_params = best_params.iloc[::-1]
         # rename the value column to the response
         best_params = best_params.rename(columns={'value': f"Expected {response}"})
+        
+        # best_params = pd.DataFrame(columns=factors+[f"Expected {response}"])
+        # for i in range(Nexp):
+        #     study.optimize(objective, n_trials=50, n_jobs=-1)
+        #     # Get the best hyperparameters
+        #     BestPars = study.best_params  
+        #     BestVal = study.best_value
+        #     # store the best parameters and best value in best_params
+        #     best_params.loc[i, factors] = [BestPars[factor] for factor in factors]
+        #     best_params.loc[i, f"Expected {response}"] = BestVal
 
         outdf = best_params.copy()
         # make the output more readable
@@ -193,7 +210,11 @@ with tabs[1]:
                     Xr[f] = np.repeat(best_params[f].values[0], 50)
             Xr = Xr.values
             Xr = scaler.transform(Xr)
-            yp, ys = gp_model.predict(Xr, return_std=True)
+            if model_selection == "Gaussian Process":
+                yp, ys = model.predict(Xr, return_std=True)
+            else:
+                yp = model.predict(Xr)
+                ys = 0
             Xr = scaler.inverse_transform(Xr)
             Xr = pd.DataFrame(Xr, columns=factors)
             Xr = Xr[factor].values.reshape(-1, 1)
@@ -226,4 +247,6 @@ with tabs[1]:
                     fig.tight_layout()
                     cols[j-1].pyplot(fig)
 
+        fig = optuna.visualization.plot_optimization_history(study)
+        st.write(fig)
 
