@@ -59,7 +59,7 @@ with tabs[0]: # data loading
     help="The data file should contain the factors and the response variable.",
     on_change=clear_models())
     if datafile is not None:
-        data = load_data(datafile)
+        data = pd.read_csv(datafile)
         cols = data.columns.to_numpy()
         right.dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
@@ -72,8 +72,13 @@ with tabs[0]: # data loading
         if len(response) > 0:
             response = response[0]
         dtypes = data.dtypes
-        # store row order to retrieve it later
-        st.session_state['data'] = data
+        fig, ax = plt.subplots()
+        st.write(data[response])
+        plt.scatter(range(1,len(data[response])+1), data[response], s=100)
+        plt.xlabel('Measurement number') 
+        plt.ylabel(response)
+        fig.tight_layout()
+        left.pyplot(fig)
 
 
 with tabs[1]: # visual assessment
