@@ -12,7 +12,7 @@ from ressources.functions import about_items
 from sklearn.preprocessing import LabelEncoder
 from datetime import datetime
 
-st.set_page_config(page_title="New set of experiments using Bayesian Optimisation",
+st.set_page_config(page_title="New experiments – Bayesian Optimisation",
                    page_icon="📈", layout="wide", menu_items=about_items)
 
 style = read_markdown_file("ressources/style.css")
@@ -22,7 +22,7 @@ st.markdown(style, unsafe_allow_html=True)
 # Definition of User Interface
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 st.write("""
-# New set of experiments using Bayesian Optimisation
+# New experiments – Bayesian Optimisation
 """)
 
 
@@ -49,16 +49,33 @@ with tabs[0]:
         # add option to change type of columns
         dtypesF = data[factors].dtypes
         colos = st.columns(3)
-        categ = colos[0].multiselect("Categorical factors", factors, 
-            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'object'])
-        floats = colos[1].multiselect("Float factors", factors, 
-            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'float64'])
-        integers = colos[2].multiselect("Integer factors", factors, 
-            default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'int64'])
+        # categ = colos[0].multiselect("Categorical factors", factors, 
+        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'object'])
+        # floats = colos[1].multiselect("Float factors", factors, 
+        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'float64'])
+        # integers = colos[2].multiselect("Integer factors", factors, 
+        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'int64'])
         # change the type of the columns accordingly
-        data[categ] = data[categ].astype('object')
-        data[floats] = data[floats].astype('float64')
-        data[integers] = data[integers].astype('int64')
+        factor_carac = {factor: [dtypesF[factor], np.min(data[factor]), np.max(data[factor])] for factor in factors}
+        type_choice = {'object':0, 'int64':1, 'float64':2}
+        for factor in factors:
+            factype = type_choice[f"{factor_carac[factor][0]}"]
+            factor_carac[factor][0] = colos[0].selectbox(f"Type of **{factor}**", 
+                ['Categorical', 'Integer', 'Float'], key=f"type_{factor}", index = factype)
+            if factor_carac[factor][0] == 'Categorical':
+                factor_carac[factor][0] = 'object'
+            elif factor_carac[factor][0] == 'Integer':
+                factor_carac[factor][0] = 'int64'
+            else:
+                factor_carac[factor][0] = 'float64'
+            data[factor] = data[factor].astype(factor_carac[factor][0])
+            if factor_carac[factor][0] == 'object':
+                colos = st.columns(3)
+            else:
+                factor_carac[factor][1] = colos[1].number_input(f"Min value of **{factor}**",
+                    value=factor_carac[factor][1], key=f"min_{factor}")
+                factor_carac[factor][2] = colos[2].number_input(f"Max value of **{factor}**",
+                    value=factor_carac[factor][2], key=f"max_{factor}")
         data, encoders, dtypes = encode_data(data, factors)
 
 
@@ -125,12 +142,12 @@ with tabs[1]:
                     suggestions = data[factor].unique() if factor not in fixpar else [fixedparval[factor]]
                     trials[i] = trial.suggest_categorical(factor, suggestions)
                 elif dtypes[factor] == 'int':
-                    Min = np.min(data[factor]) if factor not in fixpar else fixedparval[factor]
-                    Max = np.max(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    Min = factor_carac[factor][1] if factor not in fixpar else fixedparval[factor]
+                    Max = factor_carac[factor][2] if factor not in fixpar else fixedparval[factor]
                     trials[i] = trial.suggest_int(factor, Min, Max)
                 else:
-                    Min = np.min(data[factor]) if factor not in fixpar else fixedparval[factor]
-                    Max = np.max(data[factor]) if factor not in fixpar else fixedparval[factor]
+                    Min = factor_carac[factor][1] if factor not in fixpar else fixedparval[factor]
+                    Max = factor_carac[factor][2] if factor not in fixpar else fixedparval[factor]
                     trials[i] = trial.suggest_float(factor, Min, Max)
             trials = np.array(trials).reshape(1, -1)
             # Evaluate the objective function
@@ -199,12 +216,15 @@ with tabs[1]:
 
         ncols = np.min([len(factors),4])
         cols = st.columns(int(ncols))
+        # data = decode_data(data, factors, dtypes, encoders)
         for i,factor in enumerate(factors):
             fig, ax = plt.subplots()
             Xr = pd.DataFrame(columns=factors)
             for f in factors:
-                if f == factor:
-                    Xr[f] = np.linspace(np.min(data[f]), np.max(data[f]), 50)
+                if f == factor and dtypes[f] != 'object':
+                    Xr[f] = np.linspace(factor_carac[f][1], factor_carac[f][2], 50)
+                elif f == factor and dtypes[f] == 'object':
+                    Xr[f] = np.linspace(0, len(data[factor].unique())-1, 50)
                 else:
                     Xr[f] = np.repeat(best_params[f].values[0], 50)
             Xr = Xr.values
@@ -229,7 +249,7 @@ with tabs[1]:
             if dtypes[factor] == 'object':
                 ax.set_xticks(np.arange(len(data[factor].unique())))
                 labels = encoders[factor].inverse_transform([round(f) for f in data[factor].unique()])
-                ax.set_xticklabels(labels)
+                ax.set_xticklabels(np.sort(labels))
             fig.tight_layout()
             cols[i%ncols].pyplot(fig)
             
@@ -241,8 +261,18 @@ with tabs[1]:
                     fig, ax = plt.subplots()
                     ax.scatter(data[facj], data[faci], s=100)
                     ax.scatter(best_params[facj], best_params[faci], s=100, color='red')
-                    ax.set_ylabel(faci)
-                    ax.set_xlabel(facj)
+                    if dtypes[faci] == 'object':
+                        ax.set_yticks(np.arange(len(data[faci].unique())))
+                        labels = encoders[faci].inverse_transform([round(f) for f in data[faci].unique()])
+                        ax.set_yticklabels(np.sort(labels))
+                    else:
+                        ax.set_ylabel(faci)
+                    if dtypes[facj] == 'object':
+                        ax.set_xticks(np.arange(len(data[facj].unique())))
+                        labels = encoders[facj].inverse_transform([round(f) for f in data[facj].unique()])
+                        ax.set_xticklabels(np.sort(labels))
+                    else:
+                        ax.set_xlabel(facj)
                     fig.tight_layout()
                     cols[j-1].pyplot(fig)
 

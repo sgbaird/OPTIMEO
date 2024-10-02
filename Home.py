@@ -5,7 +5,7 @@ from ressources.functions import *
 from ressources.functions import about_items
 
 st.set_page_config(
-    page_title="MOFSONG Optimizer",
+    page_title="DOE Designer, Optimizer, and Analyzer",
     page_icon=":hammer_and_pick:",
     layout="wide",
     initial_sidebar_state="expanded",

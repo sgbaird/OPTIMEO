@@ -51,24 +51,23 @@ st.write("""
 # Data Analysis and Modeling
 """)
 
-data = st.sidebar.file_uploader("Upload a CSV file", type=["csv"], 
-    help="The data file should contain the factors and the response variable.",
-    on_change=clear_models())
-
 tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", "Train Machine Learning Models", 'Predictions'])
 
 with tabs[0]: # data loading
+    left, right = st.columns([2,3])
+    data = left.file_uploader("Upload a CSV file", type=["csv"], 
+    help="The data file should contain the factors and the response variable.",
+    on_change=clear_models())
     if data is not None:
         data = pd.read_csv(data)
-        left, right = st.columns([3,2])
         cols = data.columns.to_numpy()
-        left.dataframe(data, hide_index=True)
+        right.dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
-        factors = right.multiselect("Select the factors columns:", 
+        factors = left.multiselect("Select the factors columns:", 
                 data.columns, default=cols[mincol:-1])
         # response cannut be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        response = right.multiselect("Select the response column:", 
+        response = left.multiselect("Select the response column:", 
                 available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]

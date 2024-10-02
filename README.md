@@ -12,11 +12,16 @@ This App was developed within the frame of an academic research project, MOFSONG
 
 ## Usage
 
-Choose the page you want to use in the sidebar, and follow the instructions.
+Choose the page you want to use in the sidebar, and follow the instructions. Hover the mouse on the question marks to get more information about the parameters.
 
-- **1. Design of Experiment:** Generate a Design of Experiment (DoE) for the optimization of your process. Depending on the number of factors and levels, you can choose between different types of DoE, such as Full Factorial, Fractional Factorial, or Definitive Screening Design. You can also generate a Latin Hypercube Sampling (LHS) for a Monte-Carlo simulation.
-- **2. New experiments:** From a previous set of experiments and their results, generate a new set of experiments to optimize your process. You can choose the sampler you want to use, depending on if you are on the early stages of the optimization and want to explore the phase space (then, chose the genetic algorithm sampler), or if you want to efficiently find the maximum of minimum in the response (then choose the TPE one).
-- **3. Data analysis and modeling:** Analyze the results of your experiments and model the response of your process. You can use different types of regression models, such as linear, polynomial, or Random Forest. You can also use the trained model to predict the response of your process for new experiments.
+**1. Design of Experiment:**  
+Generate a Design of Experiment (DoE) for the optimization of your process. Depending on the number of factors and levels, you can choose between different types of DoE, such as Full Factorial, Fractional Factorial, or Definitive Screening Design. You can also generate a Latin Hypercube Sampling (LHS) for a Monte-Carlo simulation.  
+
+**2. New experiments:**  
+From a previous set of experiments and their results, generate a new set of experiments to optimize your process. You can choose the sampler you want to use, depending on if you are on the early stages of the optimization and want to explore the phase space (then, chose the genetic algorithm sampler), or if you want to efficiently find the maximum of minimum in the response (then choose the TPE one).  
+
+**3. Data analysis and modeling:**  
+Analyze the results of your experiments and model the response of your process. You can use different types of regression models, such as linear, polynomial, or Random Forest. You can also use the trained model to predict the response of your process for new experiments.
 
 ---
 
