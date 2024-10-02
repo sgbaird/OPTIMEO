@@ -48,14 +48,9 @@ with tabs[0]:
             response = response[0]
         # add option to change type of columns
         dtypesF = data[factors].dtypes
+        st.write("""##### Select the type and range of each factor
+Except for categorical factors, you can increase the ranges to allow the optimization algorithm to explore values outside the current range of measures.""")
         colos = st.columns(3)
-        # categ = colos[0].multiselect("Categorical factors", factors, 
-        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'object'])
-        # floats = colos[1].multiselect("Float factors", factors, 
-        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'float64'])
-        # integers = colos[2].multiselect("Integer factors", factors, 
-        #     default=[dtypesF.index[i] for i in range(len(dtypesF)) if dtypesF[i] == 'int64'])
-        # change the type of the columns accordingly
         factor_carac = {factor: [dtypesF[factor], np.min(data[factor]), np.max(data[factor])] for factor in factors}
         type_choice = {'object':0, 'int64':1, 'float64':2}
         for factor in factors:
