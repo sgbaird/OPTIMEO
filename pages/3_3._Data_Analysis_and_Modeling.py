@@ -77,8 +77,6 @@ with tabs[0]: # data loading
 
 with tabs[1]: # visual assessment
     if datafile is not None and len(factors) > 0 and len(response) > 0:
-        # data[response] = responsevals
-        st.write(data)
         plt.rcParams.update({'font.size': 22})
         ncols = np.min([len(factors),4])
         cols = st.columns(4)
@@ -97,6 +95,7 @@ with tabs[1]: # visual assessment
         fig.tight_layout()
         cols[2].pyplot(fig)
         fig, ax = plt.subplots()
+        data[response] = responsevals
         plt.scatter(range(1,len(data[response])+1), data[response], s=100)
         plt.xlabel('Measurement number') 
         plt.ylabel(response)
