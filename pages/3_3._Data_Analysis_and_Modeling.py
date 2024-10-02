@@ -77,7 +77,7 @@ with tabs[0]: # data loading
 
 
 with tabs[1]: # visual assessment
-    if data is not None and len(factors) > 0 and len(response) > 0:
+    if datafile is not None and len(factors) > 0 and len(response) > 0:
         plt.rcParams.update({'font.size': 22})
         ncols = np.min([len(factors),4])
         cols = st.columns(4)
@@ -120,7 +120,7 @@ with tabs[1]: # visual assessment
 
 
 with tabs[2]: # simple model
-    if data is not None and len(factors) > 0 and len(response) > 0:
+    if datafile is not None and len(factors) > 0 and len(response) > 0:
         cols = st.columns([1,1,4])
         order = cols[0].number_input("Interactions order:", 
                                         min_value=1, value=1, max_value=len(factors))
@@ -170,7 +170,7 @@ To remove the intercept, add `-1` at the end of the equation.""")
 
 
 with tabs[3]: # machine learning model
-    if data is not None and len(factors) > 0 and len(response) > 0:
+    if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
         model_sel = st.sidebar.selectbox("Select the machine learning model:", 
                 ["Random Forest", "Gradient Boosting", "Linear Regression"])
