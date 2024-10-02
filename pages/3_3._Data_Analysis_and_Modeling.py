@@ -75,46 +75,47 @@ with tabs[0]: # data loading
         responsevals = data[response].values
 
 
-# with tabs[1]: # visual assessment
-    # if datafile is not None and len(factors) > 0 and len(response) > 0:
-    #     plt.rcParams.update({'font.size': 22})
-    #     ncols = np.min([len(factors),4])
-    #     cols = st.columns(4)
-    #     fig, ax = plt.subplots()
-    #     sm.qqplot(data[response], line='s', ax=ax) 
-    #     fig.tight_layout()
-    #     cols[0].pyplot(fig)
-    #     fig, ax = plt.subplots()
-    #     plt.boxplot(data[response], vert=False) 
-    #     plt.xlabel(response)
-    #     fig.tight_layout()
-    #     cols[1].pyplot(fig)
-    #     fig, ax = plt.subplots()
-    #     plt.hist(data[response]) 
-    #     plt.xlabel(response) 
-    #     fig.tight_layout()
-    #     cols[2].pyplot(fig)
-    #     # fig, ax = plt.subplots()
-    #     # data[response] = responsevals
-    #     # plt.scatter(range(1,len(data[response])+1), data[response], s=100)
-    #     # plt.xlabel('Measurement number') 
-    #     # plt.ylabel(response)
-    #     # fig.tight_layout()
-    #     # cols[3].pyplot(fig)
+with tabs[1]: # visual assessment
+    if datafile is not None and len(factors) > 0 and len(response) > 0:
+        toplot = data.copy()
+        plt.rcParams.update({'font.size': 22})
+        ncols = np.min([len(factors),4])
+        cols = st.columns(4)
+        fig, ax = plt.subplots()
+        sm.qqplot(toplot[response], line='s', ax=ax) 
+        fig.tight_layout()
+        cols[0].pyplot(fig)
+        fig, ax = plt.subplots()
+        plt.boxplot(toplot[response], vert=False) 
+        plt.xlabel(response)
+        fig.tight_layout()
+        cols[1].pyplot(fig)
+        fig, ax = plt.subplots()
+        plt.hist(toplot[response]) 
+        plt.xlabel(response) 
+        fig.tight_layout()
+        cols[2].pyplot(fig)
+        fig, ax = plt.subplots()
+        toplot[response] = responsevals
+        plt.scatter(range(1,len(toplot[response])+1), toplot[response], s=100)
+        plt.xlabel('Measurement number') 
+        plt.ylabel(response)
+        fig.tight_layout()
+        cols[3].pyplot(fig)
         
-    #     cols = st.columns(int(ncols))
-    #     for i,factor in enumerate(factors):
-    #         fig, ax = plt.subplots()
-    #         ax.scatter(data[factor], data[response], s=100)
-    #         # add linear regression with red line and equation
-    #         if dtypes[factor] != 'object':
-    #             p = np.polyfit(data[factor], data[response], 2)
-    #             ax.plot(np.linspace(np.min(data[factor]),np.max(data[factor]),100), np.polyval(p, np.linspace(np.min(data[factor]),np.max(data[factor]),100)), color='red')
-    #             ax.set_title(write_poly(p), fontsize=20)
-    #         ax.set_xlabel(factor)
-    #         ax.set_ylabel(response)
-    #         fig.tight_layout()
-    #         cols[i%ncols].pyplot(fig)
+        cols = st.columns(int(ncols))
+        for i,factor in enumerate(factors):
+            fig, ax = plt.subplots()
+            ax.scatter(toplot[factor], toplot[response], s=100)
+            # add linear regression with red line and equation
+            if dtypes[factor] != 'object':
+                p = np.polyfit(toplot[factor], toplot[response], 2)
+                ax.plot(np.linspace(np.min(toplot[factor]),np.max(toplot[factor]),100), np.polyval(p, np.linspace(np.min(toplot[factor]),np.max(toplot[factor]),100)), color='red')
+                ax.set_title(write_poly(p), fontsize=20)
+            ax.set_xlabel(factor)
+            ax.set_ylabel(response)
+            fig.tight_layout()
+            cols[i%ncols].pyplot(fig)
         
 
 
