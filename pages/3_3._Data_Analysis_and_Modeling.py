@@ -71,7 +71,6 @@ with tabs[0]: # data loading
                 available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
-        st.write(data[response])
         dtypes = data.dtypes
 
 
@@ -95,6 +94,7 @@ with tabs[1]: # visual assessment
         fig.tight_layout()
         cols[2].pyplot(fig)
         fig, ax = plt.subplots()
+        st.write(data[response])
         plt.scatter(range(1,len(data[response])+1), data[response], s=100)
         plt.xlabel('Measurement number') 
         plt.ylabel(response)
