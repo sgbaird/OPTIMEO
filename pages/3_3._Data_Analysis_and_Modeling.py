@@ -77,7 +77,7 @@ with tabs[0]: # data loading
 
 with tabs[1]: # visual assessment
     if datafile is not None and len(factors) > 0 and len(response) > 0:
-        data[response] = responsevals
+        # data[response] = responsevals
         st.write(data)
         plt.rcParams.update({'font.size': 22})
         ncols = np.min([len(factors),4])
