@@ -25,6 +25,28 @@ Analyze the results of your experiments and model the response of your process. 
 
 ---
 
+## Installation
+
+You can use the app directly on its [Streamlit.io web page](https://doe-doa.streamlit.app/).
+
+If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you need to have Python installed. You can download it [here](https://www.python.org/downloads/).
+
+Then, you can install the required packages by running the following command in your terminal:
+
+```bash
+git clone https://github.com/colinbousige/DOE-DOA.git
+cd DOE-DOA
+pip install -r requirements.txt
+```
+
+Finally, you can run the app by running the following command in your terminal:
+
+```bash
+streamlit run Home.py
+```
+
+---
+
 ## Support
 
 This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/DOE-DOA).
@@ -62,7 +84,7 @@ The source can be found [on Github](https://github.com/colinbousige/DOE-DOA), pl
 
 ## Acknowledgements
 
-This work was supported by the French National Research Agency (N° ANR-xxxxxx).
+This work was supported by the French National Research Agency (N° ANR-xxxxxx).  
 Also, this work was made possible thanks to the following open-source projects:
 
 - [pyDOE3](https://github.com/relf/pyDOE3)
