@@ -72,10 +72,12 @@ with tabs[0]: # data loading
         if len(response) > 0:
             response = response[0]
         dtypes = data.dtypes
+        responsevals = data[response].values
 
 
 with tabs[1]: # visual assessment
     if datafile is not None and len(factors) > 0 and len(response) > 0:
+        data[response] = responsevals
         plt.rcParams.update({'font.size': 22})
         ncols = np.min([len(factors),4])
         cols = st.columns(4)
