@@ -71,6 +71,7 @@ with tabs[0]: # data loading
                 available, default=available[-1], max_selections=1)
         if len(response) > 0:
             response = response[0]
+        st.write(data[response])
         dtypes = data.dtypes
 
 
