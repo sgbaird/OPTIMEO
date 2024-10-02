@@ -81,8 +81,8 @@ with tabs[1]:
                 help="Number of experiments to look for the optimum response.")
         model_selection = st.sidebar.selectbox("Select the model", ["Gaussian Process", "Random Forest"],
                 help="""### Select the model to use for the optimization.
-- **Gaussian Process:** This model will provide an estimate of the response and its uncertainty.
-- **Random Forest:** This model will provide an estimate of the response without uncertainty.
+- **Gaussian Process:** This model will provide an estimate of the response and its uncertainty. It's recommended for small datasets.
+- **Random Forest:** This model will provide an estimate of the response without uncertainty. It's recommended for large datasets.
 """)
         samplerchoice = st.sidebar.selectbox("Select the sampler", ["TPE", "NSGAII"], help="""### Select the sampler to use for the optimization.  
 - **TPE:** Tree-structured Parzen Estimator. This will tend to explore the parameter space more efficiently (exploitation).
@@ -90,19 +90,19 @@ with tabs[1]:
 """)
         sampler_list = {"TPE": optuna.samplers.TPESampler,
                         "NSGAII": optuna.samplers.NSGAIISampler}
-        fixpar = st.sidebar.multiselect("Fix a parameter value", factors,
-                help="Select a parameter to fix its value in the optimization.")
         # fix a parameter value
+        fixpar = st.sidebar.multiselect("Fix parameter values", factors,
+                help="Select one or more factors whose values you want to fix during optimization.")
         fixparval = [None]*len(fixpar)
         if len(fixpar)>0:
             for i,par in enumerate(fixpar):
                 if dtypes[par] == 'object':
                     cases = encoders[par].inverse_transform([round(f) for f in data[par].unique()])
-                    fixparval[i] = st.sidebar.selectbox(f"Value of {par}", cases, 
+                    fixparval[i] = st.sidebar.selectbox(f"Value of **{par}**", cases, 
                                                         key=f"fixpar{i}")
                     fixparval[i] = encoders[par].transform([fixparval[i]])[0]
                 else:
-                    fixparval[i] = st.sidebar.number_input(f"Value of {par}", 
+                    fixparval[i] = st.sidebar.number_input(f"Value of **{par}**", 
                                     value=np.mean(data[par]), key=f"fixpar{i}")
         fixedparval = {par: val for par,val in zip(fixpar, fixparval)}
         X = data[factors].values
@@ -110,9 +110,9 @@ with tabs[1]:
         # Standardize the input feature
         scaler = StandardScaler()
         X_scaled = scaler.fit_transform(X)
-        # Train Gaussian Process Regressor
-        # kernel = RBF(length_scale_bounds='fixed', length_scale=0.25) 
+        # Train the model
         if model_selection == "Gaussian Process":
+            # kernel = RBF(length_scale_bounds='fixed', length_scale=0.25) 
             model = GaussianProcessRegressor(n_restarts_optimizer=10, 
                                              random_state=12345)
         else:
