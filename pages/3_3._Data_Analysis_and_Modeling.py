@@ -94,11 +94,8 @@ with tabs[1]: # visual assessment
         fig.tight_layout()
         cols[2].pyplot(fig)
         fig, ax = plt.subplots()
-        if 'run_order' in data.columns:
-            plt.plot(data['run_order'], data[response], 'bo') 
-        else:
-            plt.scatter(data.index, data[response], s=200)
-        plt.xlabel('Run order') 
+        plt.scatter(range(len(data[response])), data[response], s=200)
+        plt.xlabel('Measurement number') 
         plt.ylabel(response)
         fig.tight_layout()
         cols[3].pyplot(fig)
@@ -126,11 +123,11 @@ with tabs[2]: # simple model
                                         min_value=1, value=1, max_value=len(factors))
         quadratic = cols[1].multiselect("Quadratic terms?", factors)
         def_eqn = write_equation(factors, response, order, quadratic, dtypes)
-        eqn = cols[2].text_input("Model equation:", key="eqn", value=def_eqn, help="""Interactions are written as 'factor1\:factor2'.  
-Powered terms are written as 'np.power(factor, power)'.  
-Categorical variables are written as 'C(factor)'.  
-You can also use 'np.log(factor)' or 'np.exp(factor)' for transformations.  
-To remove the intercept, add '-1' at the end of the equation.""")
+        eqn = cols[2].text_input("Model equation:", key="eqn", value=def_eqn, help="""Interactions are written as `factor1:factor2`.  
+Powered terms are written as `I(factor**power)`.  
+Categorical variables are written as `C(factor)`.  
+You can also use `np.log(factor)` or `np.exp(factor)` for transformations.  
+To remove the intercept, add `-1` at the end of the equation.""")
         model = smf.ols(formula=eqn, data=data)
         result = model.fit()
         st.write(result.summary())
