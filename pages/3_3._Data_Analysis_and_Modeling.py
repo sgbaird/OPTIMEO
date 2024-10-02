@@ -55,11 +55,11 @@ tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 
 
 with tabs[0]: # data loading
     left, right = st.columns([2,3])
-    data = left.file_uploader("Upload a CSV file", type=["csv"], 
+    datafile = left.file_uploader("Upload a CSV file", type=["csv"], 
     help="The data file should contain the factors and the response variable.",
     on_change=clear_models())
-    if data is not None:
-        data = pd.read_csv(data)
+    if datafile is not None:
+        data = load_data(datafile)
         cols = data.columns.to_numpy()
         right.dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
@@ -72,6 +72,8 @@ with tabs[0]: # data loading
         if len(response) > 0:
             response = response[0]
         dtypes = data.dtypes
+        # store row order to retrieve it later
+        st.session_state['data'] = data
 
 
 with tabs[1]: # visual assessment

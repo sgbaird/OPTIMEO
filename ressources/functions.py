@@ -81,6 +81,11 @@ def train_model(X_train, y_train, model, model_name):
         pickle.dump(model, file)
     return model
 
+@st.cache_data
+def load_data(infile):
+    data = pd.read_csv(infile)
+    return data
+
 @st.cache_resource
 def load_model(model_name):
     infile = f"{model_name}".replace(" ", "_")
