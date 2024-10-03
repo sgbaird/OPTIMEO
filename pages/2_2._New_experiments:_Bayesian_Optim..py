@@ -31,7 +31,8 @@ tabs = st.tabs(["Data Loading", "Bayesian Optimization"])
 
 with tabs[0]:
     colos = st.columns([2,3])
-    data = colos[0].file_uploader("Upload a CSV file", type=["csv"])
+    data = colos[0].file_uploader("Upload a CSV file (comma separated values)", type=["csv"],
+                help="The data file should contain the factors and the response variable.")
     if data is not None:
         data = pd.read_csv(data)
         left, right = st.columns([3,2])

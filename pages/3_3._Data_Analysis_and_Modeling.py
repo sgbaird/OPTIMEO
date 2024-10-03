@@ -55,7 +55,7 @@ tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 
 
 with tabs[0]: # data loading
     left, right = st.columns([2,3])
-    datafile = left.file_uploader("Upload a CSV file", type=["csv"], 
+    datafile = left.file_uploader("Upload a CSV file (comma separated values)", type=["csv"], 
     help="The data file should contain the factors and the response variable.",
     on_change=clear_models())
     if datafile is not None:

@@ -16,7 +16,7 @@ import definitive_screening_design as dsd
 help = read_markdown_file("pages/help-doe.md")
 
 st.set_page_config(page_title="Design Of Experiment", 
-                   page_icon="📈", layout="wide", menu_items=about_items)
+                   page_icon=":memo:", layout="wide", menu_items=about_items)
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
