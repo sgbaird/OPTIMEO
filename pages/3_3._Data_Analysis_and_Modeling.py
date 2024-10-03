@@ -213,7 +213,7 @@ with tabs[3]: # machine learning model
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
         model_sel = st.sidebar.selectbox("Select the machine learning model:", 
-                ["Random Forest", "Gaussian Process", "Gradient Boosting", "Linear Regression"])
+                ["Random Forest", "Gaussian Process"])#, "Gradient Boosting", "Linear Regression"])
         split_size = st.sidebar.number_input("Test size:", min_value=0.0, value=0.2, max_value=1.)
         X = data[factors].values
         y = data[response].values
