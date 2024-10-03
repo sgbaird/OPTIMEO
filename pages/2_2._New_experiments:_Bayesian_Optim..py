@@ -39,25 +39,30 @@ with tabs[0]:
         cols = data.columns.to_numpy()
         colos[1].dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
-        factors = colos[0].multiselect("Select the factors columns:", 
+        factors = colos[0].multiselect("Select the **factors** columns:", 
                 data.columns, default=cols[mincol:-1])
         # response cannut be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        response = colos[0].multiselect("Select the response column:", 
-                available, default=available[-1], max_selections=1)
+        response = [colos[0].selectbox("Select the **response** column:", 
+                available, index=len(available)-1)]
         if len(response) > 0:
             response = response[0]
         # add option to change type of columns
         dtypesF = data[factors].dtypes
         st.write("""##### Select the type and range of each factor
 Except for categorical factors, you can increase the ranges to allow the optimization algorithm to explore values outside the current range of measures.""")
-        colos = st.columns(3)
         factor_carac = {factor: [dtypesF[factor], np.min(data[factor]), np.max(data[factor])] for factor in factors}
         type_choice = {'object':0, 'int64':1, 'float64':2}
+        colos = st.columns(5)
+        colos[1].write("<p style='text-align:center;'><b>Type</b></p>", unsafe_allow_html=True)
+        colos[2].write("<p style='text-align:center;'><b>Min</b></p>", unsafe_allow_html=True)
+        colos[3].write("<p style='text-align:center;'><b>Max</b></p>", unsafe_allow_html=True)
         for factor in factors:
+            colos = st.columns(5)
+            colos[0].write(f"<p style='text-align:right;'><b>{factor}</b></p>", unsafe_allow_html=True)
             factype = type_choice[f"{factor_carac[factor][0]}"]
-            factor_carac[factor][0] = colos[0].selectbox(f"Type of **{factor}**", 
-                ['Categorical', 'Integer', 'Float'], key=f"type_{factor}", index = factype)
+            factor_carac[factor][0] = colos[1].selectbox(f"Type of **{factor}**", 
+                ['Categorical', 'Integer', 'Float'], key=f"type_{factor}", index = factype, label_visibility='collapsed')
             if factor_carac[factor][0] == 'Categorical':
                 factor_carac[factor][0] = 'object'
             elif factor_carac[factor][0] == 'Integer':
@@ -65,13 +70,11 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
             else:
                 factor_carac[factor][0] = 'float64'
             data[factor] = data[factor].astype(factor_carac[factor][0])
-            if factor_carac[factor][0] == 'object':
-                colos = st.columns(3)
-            else:
-                factor_carac[factor][1] = colos[1].number_input(f"Min value of **{factor}**",
-                    value=factor_carac[factor][1], key=f"min_{factor}")
-                factor_carac[factor][2] = colos[2].number_input(f"Max value of **{factor}**",
-                    value=factor_carac[factor][2], key=f"max_{factor}")
+            if factor_carac[factor][0] != 'object':
+                factor_carac[factor][1] = colos[2].number_input(f"Min value of **{factor}**",
+                    value=factor_carac[factor][1], key=f"min_{factor}", label_visibility='collapsed')
+                factor_carac[factor][2] = colos[3].number_input(f"Max value of **{factor}**",
+                    value=factor_carac[factor][2], key=f"max_{factor}", label_visibility='collapsed')
         data, encoders, dtypes = encode_data(data, factors)
 
 

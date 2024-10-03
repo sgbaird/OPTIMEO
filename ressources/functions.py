@@ -72,6 +72,7 @@ about_items={
     }
 
 
+
 def train_model(X_train, y_train, model, model_name):
     model.fit(X_train, y_train)
     # saving the trained model
