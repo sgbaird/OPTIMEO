@@ -187,23 +187,26 @@ To remove the intercept, add `-1` at the end of the equation.""")
         cols[1].pyplot(fig)
         # # # # # # # # # # # # # # # 
         st.write("#### Predict the response for a set of factors")
-        colsinput = st.columns(3)
         Xnew = {factor: 0 for factor in factors}
+        left, right = st.columns(2)
         for i,factor in enumerate(factors):
+            colsinput = left.columns(2)
+            colsinput[0].write(f"<p style='text-align:right;font-size:1.5em'><b>{factor}</b></p>", unsafe_allow_html=True)
             if dtypes[factor] == 'object':
                 # non encoded factor
                 possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
-                Xnew[factor] = colsinput[i%3].selectbox(f"{factor}", possible, key=f"{factor}lm")
+                Xnew[factor] = colsinput[1].selectbox(f"{factor}", possible, key=f"{factor}lm", label_visibility='collapsed')
             else:
-                Xnew[factor] = colsinput[i%3].number_input(f"{factor}", 
-                                            value=np.mean(data[factor]), key=f"{factor}lm")
+                Xnew[factor] = colsinput[1].number_input(f"{factor}", 
+                                            value=np.mean(data[factor]), key=f"{factor}lm", label_visibility='collapsed')
         # encode the factors if they are categorical
         for i,factor in enumerate(factors):
             if dtypes[factor] == 'object':
                 toencode = Xnew[factor].values[0]
                 Xnew[factor] = encoders[factor].transform([toencode])[0]
         # st.write(Xnew)
-        st.write(f"##### Predicted {response}: {result.predict(exog=Xnew)[0]:.4g}")
+        right.write(f"<p style='text-align:center;font-size:1.5em'>Predicted {response}:<br><br><b>{result.predict(exog=Xnew)[0]:.4g}</b></p>",
+                    unsafe_allow_html=True)
         st.write("")
         st.write("")
         st.write("")
@@ -278,16 +281,17 @@ with tabs[3]: # machine learning model
             else:
                 cols[0].write(f"Feature importance is not available for the {model_sel} model.")
             cols[1].write("#### Predict the response for a set of factors")
-            colsinput = cols[1].columns(3)
             Xnew = pd.DataFrame(columns=factors)
             for i,factor in enumerate(factors):
+                colsinput = cols[1].columns([2,2,1])
+                colsinput[0].write(f"<p style='text-align:right;font-size:1.4em'><b>{factor}</b></p>", unsafe_allow_html=True)
                 if dtypes[factor] == 'object':
                     # non encoded factor
                     possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
-                    Xnew[factor] = [colsinput[i%3].selectbox(f"{factor}", possible)]
+                    Xnew[factor] = [colsinput[1].selectbox(f"**{factor}**", possible, label_visibility='collapsed')]
                 else:
-                    Xnew[factor] = [colsinput[i%3].number_input(f"{factor}", 
-                                                    value=np.mean(data[factor]))]
+                    Xnew[factor] = [colsinput[1].number_input(f"**{factor}**", 
+                                                    value=np.mean(data[factor]),label_visibility='collapsed')]
             # encode the factors if they are categorical
             for i,factor in enumerate(factors):
                 if dtypes[factor] == 'object':
@@ -295,4 +299,4 @@ with tabs[3]: # machine learning model
                     Xnew[factor] = encoders[factor].transform([toencode])[0]
             Xnew = Xnew.values.reshape(1, -1)
             Xnew = scaler.transform(Xnew)
-            cols[1].write(f"##### Predicted {response}: {model.predict(Xnew)[0]:.4g}")
+            cols[1].write(f"<p style='text-align:center;font-size:1.5em'><br>Predicted {response}:<br><b>{model.predict(Xnew)[0]:.4g}</br></p>",unsafe_allow_html=True)
