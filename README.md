@@ -87,6 +87,7 @@ The source can be found [on Github](https://github.com/colinbousige/DOE-DOA), pl
 This work was supported by the French National Research Agency (N° ANR-xxxxxx).  
 Also, this work was made possible thanks to the following open-source projects:
 
+- [ax](https://ax.dev/)
 - [pyDOE3](https://github.com/relf/pyDOE3)
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)

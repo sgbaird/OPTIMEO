@@ -21,4 +21,8 @@
             background: rgb(255 255 255);
             border-radius: 5px;
             }
+        [data-testid="stSidebar"][aria-expanded="true"]{
+                min-width: 350px;
+                max-width: 350px;
+            }
 </style>

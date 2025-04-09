@@ -1,3 +1,10 @@
+# Copyright (c) 2025 Colin BOUSIGE
+# Contact: colin.bousige@cnrs.fr
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the Creative Commons Attribution-NonCommercial 
+# 4.0 International License. 
+
 import streamlit as st
 import numpy as np
 from dexpy.optimal import build_optimal
@@ -9,9 +16,12 @@ from ressources.functions import *
 from sklearn.preprocessing import LabelEncoder
 from pyDOE3 import *
 from ressources.functions import about_items
-import matplotlib.pyplot as plt
 import definitive_screening_design as dsd
-
+import plotly.express as px
+from itertools import combinations
+import plotly.graph_objects as go
+from io import BytesIO
+import xlsxwriter
 
 help = read_markdown_file("pages/help-doe.md")
 
@@ -157,28 +167,86 @@ with tab3:
     design['response'] = ''
     timestamp = datetime.today().strftime('%Y-%m-%d_%H:%M:%S')
     outfile = writeout(design)
-    st.download_button(
-        label     = f"Download Experimental Design with {len(design)} runs",
+    cols= st.columns([4,1,1,7])
+    cols[0].write(f"Download Experimental Design with {len(design)} runs:")
+    cols[1].download_button(
+        label     = f"CSV",
         data      = outfile,
         file_name = f'DOE_{timestamp}.csv',
         mime      = 'text/csv',
         key       = 'download-csv'
     )
+    buffer = BytesIO()
+    with pd.ExcelWriter(buffer, engine="xlsxwriter") as writer:
+        df = clean_names(design)
+        df.to_excel(writer, sheet_name="Sheet1", index=False)
+        writer.close()
+        cols[2].download_button(
+            label=f"XLSX",
+            data=buffer,
+            file_name=f'DOE_{timestamp}.xlsx',
+            mime="application/vnd.ms-excel",
+        )
     st.dataframe(design, hide_index=True)
     # plot the design
-    cols = st.columns(Npars-1)
-    if len(design.values)>0:
-        plt.rcParams.update({'font.size': 22})
-        for i,faci in enumerate(parameters):
-            for j,facj in enumerate(parameters):
-                if j>i:
-                    fig, ax = plt.subplots()
-                    ax.scatter(design[facj['name']], design[faci['name']], s=100)
-                    ax.set_ylabel(faci['name'])
-                    ax.set_xlabel(facj['name'])
-                    fig.tight_layout()
-                    cols[j-1].pyplot(fig)
+    Npars = len(parameters)
+    cols = st.columns(Npars - 1)
 
-
-
-
+    if len(design.values) > 0:
+        if Npars <= 2:
+            # Create 2D scatter plots
+            for i, faci in enumerate(parameters):
+                for j, facj in enumerate(parameters):
+                    if j > i:
+                        fig = px.scatter(
+                            design,
+                            x=facj['name'],
+                            y=faci['name'],
+                            title=f"{faci['name']} vs {facj['name']}",
+                            labels={facj['name']: facj['name'], faci['name']: faci['name']}
+                        )
+                        fig.update_traces(marker=dict(size=10))
+                        fig.update_layout(
+                            plot_bgcolor="white",  # White background
+                            margin=dict(l=10, r=10, t=50, b=50),
+                            xaxis=dict(
+                                showgrid=True,  # Enable grid
+                                gridcolor="lightgray",  # Light gray grid lines
+                                zeroline=False,
+                                showline=True,
+                                linewidth=1,
+                                linecolor="black",  # Black border
+                                mirror=True
+                            ),
+                            yaxis=dict(
+                                showgrid=True,  # Enable grid
+                                gridcolor="lightgray",  # Light gray grid lines
+                                zeroline=False,
+                                showline=True,
+                                linewidth=1,
+                                linecolor="black",  # Black border
+                                mirror=True
+                            ),
+                        )
+                        cols[j - 1].plotly_chart(fig, use_container_width=True)
+        else:
+            # Create 3D scatter plots
+            for k, (faci, facj, fack) in enumerate(combinations(parameters, 3)):
+                fig = go.Figure(data=[go.Scatter3d(
+                    x=design[facj['name']],
+                    y=design[faci['name']],
+                    z=design[fack['name']],
+                    mode='markers',
+                    marker=dict(size=10)
+                )])
+                fig.update_layout(
+                    scene=dict(
+                        xaxis_title=facj['name'],
+                        yaxis_title=faci['name'],
+                        zaxis_title=fack['name']
+                    ),
+                    title=f"3D Plot: {faci['name']} vs {facj['name']} vs {fack['name']}",
+                    margin=dict(l=10, r=10, t=50, b=50),
+                    plot_bgcolor="white"
+                )
+                cols[k % (Npars - 1)].plotly_chart(fig, use_container_width=True)
