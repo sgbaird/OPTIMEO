@@ -4,12 +4,13 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the Creative Commons Attribution-NonCommercial 
 # 4.0 International License. 
+import streamlit as st
 
 import numpy as np
 import pandas as pd
 from typing import Any, Dict, List, Optional, Union
 
-from ax.core.observation import ObservationFeatures
+from ax.core.observation import ObservationFeatures, TrialStatus
 from ax.modelbridge.generation_strategy import GenerationStep, GenerationStrategy
 from ax.modelbridge.modelbridge_utils import get_pending_observation_features
 from ax.modelbridge.registry import Models
@@ -193,7 +194,7 @@ class AxBOExperiment:
     Example
     -------
     >>> features, outcomes = read_experimental_data('data.csv', out_pos=[-2, -1])
-    >>> experiment = AxBOExperiment(features, outcomes, N=5, maximize=[True,False])
+    >>> experiment = AxBOExperiment(features, outcomes, N=5, maximize={'out1':True, 'out2':False})
     >>> experiment.suggest_next_trials()
     >>> experiment.plot_model(metricname='outcome1')
     >>> experiment.plot_model(metricname='outcome2', linear=True)
@@ -214,7 +215,7 @@ class AxBOExperiment:
                  outcomes: Dict[str, Dict[str, Any]],
                  ranges: Optional[Dict[str, Dict[str, Any]]] = None,
                  N=1,
-                 maximize: Union[bool, List[bool]] = True,
+                 maximize: Union[bool, Dict[str, bool]] = True,
                  fixed_features: Optional[Dict[str, Any]] = None,
                  outcome_constraints: Optional[Dict[str, Dict[str, float]]] = None,
                  feature_constraints: Optional[List[Dict[str, Any]]] = None,
@@ -239,8 +240,8 @@ class AxBOExperiment:
         N: int, optional
             The number of trials to suggest in each optimization step. Must be a positive integer. Default is 1.
 
-        maximize: Union[bool, List[bool]], optional
-            A boolean or list of booleans indicating whether to maximize the outcomes.
+        maximize: Union[bool, Dict[str, bool]] = True
+            A boolean or dict indicating whether to maximize the outcomes.
             If a single boolean is provided, it is applied to all outcomes. Default is True.
         
         fixed_features: Optional[Dict[str, Any]], optional
@@ -258,11 +259,11 @@ class AxBOExperiment:
         optim: str, optional
             The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence. Default is 'bo'.
         """
-        self.initialization      = False
+        self.first_initialization_done = False
+        self.fixed_features      = fixed_features
         self.ranges              = ranges
         self.features            = features
         self.outcomes            = outcomes
-        self.fixed_features      = fixed_features
         self.N                   = N
         self.maximize            = maximize
         self.outcome_constraints = outcome_constraints
@@ -275,7 +276,7 @@ class AxBOExperiment:
         self.generator_run = None
         self.gs = None
         self.initialize_ax_client()
-        self.initialization = True
+        self.first_initialization_done = True
 
     @property
     def features(self):
@@ -296,7 +297,7 @@ class AxBOExperiment:
         for name in self._features.keys():
             if self.ranges and name in self.ranges.keys():
                 self._features[name]['range'] = self.ranges[name]
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
 
     @property
@@ -315,7 +316,7 @@ class AxBOExperiment:
             raise ValueError("outcomes must be a dictionary")
         self._outcomes = value
         self.out_names = list(value.keys())
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
     
     @property
@@ -330,6 +331,7 @@ class AxBOExperiment:
         """
         Set the fixed features of the experiment.
         """
+        self._fixed_features = None
         if value is not None:
             if not isinstance(value, dict):
                 raise ValueError("fixed_features must be a dictionary")
@@ -338,8 +340,8 @@ class AxBOExperiment:
                     raise ValueError(f"Fixed feature '{name}' not found in features")
             # fixed_features should be an ObservationFeatures object
             self._fixed_features = ObservationFeatures(parameters=value)
-        if self.initialization:
-            self.initialize_ax_client()
+        if self.first_initialization_done:
+            self.set_gs()
 
     @property
     def N(self):
@@ -356,8 +358,8 @@ class AxBOExperiment:
         if not isinstance(value, int) or value <= 0:
             raise ValueError("N must be a positive integer")
         self._N = value
-        if self.initialization:
-            self.initialize_ax_client()
+        if self.first_initialization_done:
+            self.set_gs()
 
     @property
     def maximize(self):
@@ -372,12 +374,12 @@ class AxBOExperiment:
         Set the maximization setting for the outcomes with validation.
         """
         if isinstance(value, bool):
-            self._maximize = [value] * len(self._outcomes)
-        elif isinstance(value, list) and len(value) == len(self._outcomes):
+            self._maximize = {out: value for out in self.out_names}
+        elif isinstance(value, dict) and len(value) == len(self._outcomes):
             self._maximize = value
         else:
             raise ValueError("maximize must be a boolean or a list of booleans with the same length as outcomes")
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
 
     @property
@@ -398,7 +400,7 @@ class AxBOExperiment:
             self._outcome_constraints = value
         else:
             self._outcome_constraints = None
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
 
     @property
@@ -421,7 +423,7 @@ class AxBOExperiment:
             self._feature_constraints = [value]
         else:
             self._feature_constraints = None
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
 
     @property
@@ -440,8 +442,8 @@ class AxBOExperiment:
         if value not in ['bo', 'sobol']:
             raise ValueError("Optimization method must be either 'bo' or 'sobol'")
         self._optim = value
-        if self.initialization:
-            self.initialize_ax_client()
+        if self.first_initialization_done:
+            self.set_gs()
 
     @property
     def data(self) -> pd.DataFrame:
@@ -470,7 +472,7 @@ class AxBOExperiment:
         for col in outcome_columns:
             self._outcomes[col]['data'] = value[col].tolist()
 
-        if self.initialization:
+        if self.first_initialization_done:
             self.initialize_ax_client()
 
     def __repr__(self):
@@ -498,6 +500,7 @@ Input data:
         """
         Initialize the AxClient with the experiment's parameters, objectives, and constraints.
         """
+        print('\n========   UPDATING MODEL   ========\n')
         self.ax_client = AxClient()
         self.parameters = []
         for name, info in self._features.items():
@@ -526,8 +529,8 @@ Input data:
             name="bayesian_optimization",
             parameters=self.parameters,
             objectives={self.out_names[i]:
-                            ObjectiveProperties(minimize=not self._maximize[i])
-                            for i in range(len(self.out_names))},
+                ObjectiveProperties(minimize=not self._maximize[self.out_names[i]])
+                    for i in range(len(self.out_names))},
             parameter_constraints=self._feature_constraints,
             outcome_constraints=self._outcome_constraints,
             overwrite_existing_experiment=True
@@ -539,7 +542,28 @@ Input data:
             self.ax_client.attach_trial(params)
             self.ax_client.complete_trial(trial_index=i, raw_data=outcomes)
 
+        self.set_model()
+        self.set_gs()
+
+    def set_model(self):
+        """
+        Set the model to be used for predictions.
+        This method is called after initializing the AxClient.
+        """
+        self.model = Models.BOTORCH_MODULAR(
+                experiment=self.ax_client.experiment,
+                data=self.ax_client.experiment.fetch_data()
+                )
+    
+    def set_gs(self):
+        """
+        Set the generation strategy for the experiment.
+        This method is called after initializing the AxClient.
+        """
+        self.clear_trials()
         if self._optim == 'bo':
+            if not self.model:
+                self.set_model()
             self.gs = GenerationStrategy(
                 steps=[GenerationStep(
                             model=Models.BOTORCH_MODULAR,
@@ -560,9 +584,6 @@ Input data:
                         )
                     ]
                 )
-        self.model = Models.BOTORCH_MODULAR(
-                experiment=self.ax_client.experiment,
-                data=self.ax_client.experiment.fetch_data())
         self.generator_run = self.gs.gen(
                 experiment=self.ax_client.experiment,  # Ax `Experiment`, for which to generate new candidates
                 data=None,  # Ax `Data` to use for model training, optional.
@@ -572,7 +593,17 @@ Input data:
                     self.ax_client.experiment
                 ),  # Points that should not be re-generated
             )
-
+    
+    def clear_trials(self):
+        """
+        Clear all trials in the experiment.
+        """
+        # Get all pending trial indices
+        pending_trials = [k for k,i in self.ax_client.experiment.trials.items() 
+                            if i.status==TrialStatus.CANDIDATE]
+        for i in pending_trials:
+            self.ax_client.experiment.trials[i].mark_abandoned()
+    
     def suggest_next_trials(self):
         """
         Suggest the next set of trials based on the current model and optimization strategy.
@@ -583,6 +614,7 @@ Input data:
         pd.DataFrame: 
             DataFrame containing the suggested trials and their predicted outcomes.
         """
+        self.clear_trials()
         if self.ax_client is None:
             self.initialize_ax_client()
         if self._N == 1:

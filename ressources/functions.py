@@ -16,6 +16,7 @@ from janitor import clean_names
 import pickle
 import os
 from sklearn.preprocessing import LabelEncoder
+from ressources.bo import *
 
 class Capturing(list):
     def __enter__(self):
@@ -116,20 +117,8 @@ def train_model(X_train, y_train, model, model_name):
     return model
 
 
-@st.cache_resource
-def load_model(model_name):
-    infile = f"{model_name}".replace(" ", "_")
-    print(f"./trained_model/{infile}")
-    if infile in os.listdir("./trained_model"):
-        with open(f"./trained_model/{infile}", 'rb') as file:
-            model = pickle.load(file)
-        return model
-    else:
-        st.error(f"The model {infile} was not found. Please train the model first.")
-        return None
-
-
-def encode_data(data, factors, response):
+# @st.cache_data
+def encode_data(data, factors, response, factor_ranges):
     """
     Read experimental data from a CSV file and format it into features and outcomes dictionaries.
 
@@ -142,26 +131,54 @@ def encode_data(data, factors, response):
     """
     features = data[factors].copy()
     outcomes = data[response].copy()
-
+    message = {}
     formatted_features = {}
     for column in features.columns:
         if features[column].dtype == 'object':
             unique_values = features[column].unique()
-            formatted_features[column] = {'type': 'text',
-                                          'data': [str(val) for val in features[column].tolist()],
-                                          'range': [str(val) for val in unique_values.tolist()]}
+            if len(unique_values) == 1:
+                message[column] = f"Only one unique value found in **{column}**. This column will be removed from the features."
+            else:
+                formatted_features[column] = {
+                    'type': 'text',
+                    'data': [str(val) for val in features[column].tolist()],
+                    'range': [str(val) for val in unique_values.tolist()]
+                    }
         elif 'int' in str(features[column].dtype):
-            min_val = int(features[column].min())
-            max_val = int(features[column].max())
-            formatted_features[column] = {'type': 'int',
-                                          'data': [int(val) for val in features[column].tolist()],
-                                          'range': (min_val, max_val)}
+            unique_values = features[column].unique()
+            min_val = int(np.min(factor_ranges[column]))
+            max_val = int(np.max(factor_ranges[column]))
+            if len(unique_values) == 1:
+                message[column] = f"Only one unique value found in **{column}**. This column will be removed from the features."
+            elif min_val >= max_val:
+                message[column] = f"Invalid range for **{column}**: {min_val} >= {max_val}. This column will be removed from the features."
+            # if data points are not in the range of the unique values, remove them
+            elif (any(val < min_val for val in unique_values) or 
+                  any(val > max_val for val in unique_values)):
+                message[column] = f"Invalid range for **{column}**: some data points do not belong to the range [{min_val},{max_val}]. This column will be removed from the features."
+            else:
+                formatted_features[column] = {
+                    'type': 'int',
+                    'data': [int(val) for val in features[column].tolist()],
+                    'range': [min_val, max_val]
+                    }
         elif 'float' in str(features[column].dtype):
-            min_val = float(features[column].min())
-            max_val = float(features[column].max())
-            formatted_features[column] = {'type': 'float',
-                                          'data': [float(val) for val in features[column].tolist()],
-                                          'range': (min_val, max_val)}
+            unique_values = features[column].unique()
+            min_val = float(np.min(factor_ranges[column]))
+            max_val = float(np.max(factor_ranges[column]))
+            if len(unique_values) == 1:
+                message[column] = f"Only one unique value found in **{column}**. This column will be removed from the features."
+            elif min_val >= max_val:
+                message[column] = f"Invalid range for **{column}**: {min_val} >= {max_val}. This column will be removed from the features."
+            elif (any(val < min_val for val in features[column]) or 
+                  any(val > max_val for val in features[column])):
+                message[column] = f"Invalid range for **{column}**: some data points do not belong to the range [{min_val},{max_val}]. This column will be removed from the features."
+            else:
+                formatted_features[column] = {
+                    'type': 'float',
+                    'data': [float(val) for val in features[column].tolist()],
+                    'range': [min_val, max_val]
+                    } 
 
     # same for outcomes with just type and data
     formatted_outcomes = {}
@@ -177,7 +194,7 @@ def encode_data(data, factors, response):
             formatted_outcomes[column] = {'type': outcome_type,
                                           'data': outcomes[column].tolist()}
 
-    return formatted_features, formatted_outcomes
+    return formatted_features, formatted_outcomes, message
 
 def encode_data2(data, factors):
     dtypes = data.dtypes
@@ -197,14 +214,6 @@ def encode_data2(data, factors):
 #     return data
 
 
-def clear_models():
-    st.cache_resource.clear()
-    available_models = os.listdir("./trained_model")
-    for model_name in available_models:
-        os.remove(f"./trained_model/{model_name}")
-        
-
-
 # Function to check constraints
 def check_constraints(df, constraints):
     results = {}
@@ -212,3 +221,73 @@ def check_constraints(df, constraints):
         # Evaluate the constraint as a boolean expression
         results[constraint] = df.eval(constraint)
     return results
+
+def check_ranges(ranges):
+    """
+    Check if the ranges are valid.
+    """
+    message = ""
+    invalid = []
+    for factor, range_ in ranges.items():
+        if len(range_) != 2:
+            message = f"Range for {factor} should be a tuple of length 2. **{factor} was removed from the features.**"
+            invalid.append(factor)
+        if range_[0] > range_[1]:
+            message = f"Invalid range for {factor}: {range_}. The first value should be less than the second. **{factor} was removed from the features.**"
+            invalid.append(factor)
+        if len(np.unique(range_)) == 1:
+            message = f"Invalid range for {factor}: {range_}. The values should be different. **{factor} was removed from the features.**"
+            invalid.append(factor)
+    return message, invalid
+
+# @st.cache_data
+def update_model(bo, features, outcomes, 
+                 factor_ranges, Nexp, maximize, 
+                 fixed_features, feature_constraints, sampler):
+    if (bo is None):
+        print("\n\n\n\nbo is None\n\n\n")
+    elif features != bo.features:
+        print("\n\n\n\nfeatures != bo.features\n\n\n")
+        print(bo.features)
+        print(features)
+    elif outcomes != bo.outcomes:
+        print("\n\n\n\noutcomes != bo.outcomes\n\n\n")
+    elif factor_ranges != bo.ranges:
+        print("\n\n\n\nfactor_ranges != bo.ranges\n\n\n")
+    elif maximize != bo.maximize:
+        print("\n\n\n\nmaximize != bo.maximize\n\n\n")
+    if (bo is None or 
+            # if these changed, a new model needs to be created
+            features != bo.features or 
+            outcomes != bo.outcomes or
+            factor_ranges != bo.ranges or 
+            maximize != bo.maximize):
+        bo = AxBOExperiment(
+            features=features, 
+            outcomes=outcomes,
+            ranges=factor_ranges,
+            N = Nexp,
+            maximize=maximize,
+            outcome_constraints=None,
+            fixed_features=fixed_features,
+            feature_constraints=feature_constraints,
+            optim = sampler
+            )
+    else:
+        # see what parameters have changed and update the bo with this
+        # N
+        if Nexp != bo.N:
+            bo.N = Nexp
+        # fixed_features
+        if fixed_features != bo.fixed_features:
+            bo.fixed_features = fixed_features
+        # feature_constraints
+        if feature_constraints != bo.feature_constraints:
+            bo.feature_constraints = feature_constraints
+        # sampler
+        if sampler != bo.optim:
+            bo.optim = sampler
+    return bo
+
+
+2

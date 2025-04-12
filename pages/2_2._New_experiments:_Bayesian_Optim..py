@@ -19,6 +19,9 @@ st.set_page_config(page_title="New experiments – Bayesian Optimisation",
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
+if "bo" not in st.session_state:
+    st.session_state['bo'] = None
+
 # if "data" not in st.session_state:
 #     st.session_state['data'] = None
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -60,6 +63,7 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
                 available, max_selections=2, default=available[-1])
         # add option to change type of columns
         dtypesF = data[factors].dtypes
+        placeholder = st.empty()
         st.write("""##### Select the type and range of each factor
 Except for categorical factors, you can increase the ranges to allow the optimization algorithm to explore values outside the current range of measures.""")
         factor_types = {factor: dtypesF[factor] for factor in factors}
@@ -88,7 +92,18 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
                 factor_ranges[factor][1] = colos[3].number_input(f"Max value of **{factor}**",
                     value=factor_ranges[factor][1], key=f"max_{factor}", label_visibility='collapsed')
         if data is not None and len(factors) > 0 and len(responses) > 0:
-            features, outcomes = encode_data(data, factors, responses)
+            features, outcomes, messages = encode_data(
+                data, factors, responses, factor_ranges)
+        if len(messages) > 0:
+            key, value = list(messages.items())[0]
+            messages[key] = '⚠️   '+messages[key]
+            message = '''
+
+⚠️   '''.join(messages.values())
+            placeholder.error(message)
+            for name,messsage in messages.items():
+                # drop factors[name]
+                factors.remove(name)
         st.write("")
         st.write("")
         st.write("")
@@ -98,10 +113,10 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
 with tabs[1]:
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
         cols = st.sidebar.columns([1,1])
-        maximize = []
+        maximize = {}
         for i in range(len(responses)):
-            maximize.append(cols[i].radio(f"Direction for **{responses[i]}**:", ["Maximize", "Minimize"]))
-        maximize = [True if m == "Maximize" else False for m in maximize]
+            temp = cols[i].radio(f"Direction for **{responses[i]}**:", ["Maximize", "Minimize"])
+            maximize[responses[i]] = True if temp == "Maximize" else False
         Nexp = st.sidebar.number_input("Number of experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.")
@@ -204,18 +219,25 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         #                 # drop feature_constraints[i]
         #                 outcome_constraints = [f for f in outcome_constraints if f != feature]
         
-        bo = AxBOExperiment(features=features, 
-                            outcomes=outcomes,
-                            ranges=factor_ranges,
-                            N = Nexp,
-                            maximize=maximize,
-                            # outcome_constraints=outcome_constraints,
-                            outcome_constraints=None,
-                            fixed_features=fixed_features,
-                            feature_constraints=feature_constraints,
-                            optim = sampler_list[samplerchoice])
-        next = bo.suggest_next_trials()
-        best = bo.get_best_parameters()
+        # bo = AxBOExperiment(features=features, 
+        #                     outcomes=outcomes,
+        #                     ranges=factor_ranges,
+        #                     N = Nexp,
+        #                     maximize=maximize,
+        #                     # outcome_constraints=outcome_constraints,
+        #                     outcome_constraints=None,
+        #                     fixed_features=fixed_features,
+        #                     feature_constraints=feature_constraints,
+        #                     optim = sampler_list[samplerchoice])
+        st.session_state['bo'] = update_model(
+                st.session_state['bo'],
+                features, outcomes,
+                factor_ranges, Nexp, maximize, 
+                fixed_features, feature_constraints, 
+                sampler_list[samplerchoice])
+        next = st.session_state['bo'].suggest_next_trials()
+        best = st.session_state['bo'].get_best_parameters()
+        bo = st.session_state['bo']
         colos[1].write("**Next experiments to perform:**")
         colos[1].dataframe(next, hide_index=True)
         colos[1].write("**Best parameters found:**")
@@ -232,8 +254,8 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         for f in factors:
             if features[f]['type'] == 'float':
                 temp = st.sidebar.number_input(f"Slice for **{f}**", key=f"parslice{f}", 
-                                                      value=None, min_value=features[f]['range'][0],
-                                                      max_value=features[f]['range'][1])
+                                                    value=None, min_value=features[f]['range'][0],
+                                                    max_value=features[f]['range'][1])
                 if temp is not None:
                     parslice[f] = temp
             if features[f]['type'] == 'text':
@@ -243,9 +265,9 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                     parslice[f] = temp[0]
             if features[f]['type'] == 'int':
                 temp = st.sidebar.number_input(f"Slice for **{f}**", key=f"parslice{f}", 
-                                                      value=None, 
-                                                      min_value=int(features[f]['range'][0]),
-                                                      max_value=int(features[f]['range'][1]))
+                                                    value=None, 
+                                                    min_value=int(features[f]['range'][0]),
+                                                    max_value=int(features[f]['range'][1]))
                 if temp is not None:
                     parslice[f] = temp
 
