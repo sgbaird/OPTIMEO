@@ -1,4 +1,4 @@
-# DoE Designer, Optimizer, and Analyzer <img src="ressources/logo.png" alt="Logo" width="100"/>
+# DoE Designer, Optimizer, and Analyzer <img src="ressources/logo.png" width="100"/>
 
 ---
 
