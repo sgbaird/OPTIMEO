@@ -1,6 +1,6 @@
 # DoE Designer, Optimizer, and Analyzer
 
-![logo](ressources/logo.png)
+<img src="ressources/logo.png" alt="Logo" width="200"/>
 
 ---
 
