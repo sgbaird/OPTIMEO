@@ -69,7 +69,7 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
         colos[1].markdown(
         "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). You can specify up to two responses. Try to avoid spaces and special characters in the column names. The first row of the file will be used as the header."
         )
-        colos[1].image("ressources/tidy_data.png", caption="Example of tidy data format")
+        colos[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if dataf is not None:
         if Path(dataf.name).suffix == '.csv':
             data = pd.read_csv(dataf)
@@ -288,9 +288,6 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         figopt = None
         # add a button to launch pareto frontiers plotting
         st.sidebar.write("---")
-        plotpareto = False
-        if len(responses) > 1:
-            plotpareto = st.sidebar.button("Plot Pareto frontiers")
         st.sidebar.write("#### Plot options: slices")
         parslice = {}
         for f in factors:
@@ -336,7 +333,11 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 st.write("Can't plot a model with no features with type `float`.")
             if figopt is not None:
                 st.plotly_chart(figopt, key=f"figopt")
-        if plotpareto:
+        if (st.session_state['bo'] is not None and 
+            len(responses) == 2 and
+            st.session_state['plot_up_to_date'] == True and
+            st.session_state['bo'].model is not None and
+            plotbutton.button("Plot Pareto frontiers", type="primary")):
             figpareto = st.session_state['bo'].plot_pareto_frontier()
             if figpareto is not None:
                 st.plotly_chart(figpareto, key=f"figpareto")
