@@ -34,16 +34,21 @@ if "model_up_to_date" not in st.session_state:
     st.session_state['model_up_to_date'] = False
 if "plot_up_to_date" not in st.session_state:
     st.session_state['plot_up_to_date'] = False
+if "plot_pareto_up_to_date" not in st.session_state:
+    st.session_state['plot_pareto_up_to_date'] = False
 
 def model_changed():
     st.session_state.model_up_to_date = False
     st.session_state.plot_up_to_date = False
+    st.session_state.plot_pareto_up_to_date = False
 def model_updated():
     st.session_state.model_up_to_date = True
 def plot_changed():
     st.session_state.plot_up_to_date = False
 def plot_updated():
     st.session_state.plot_up_to_date = True
+def plot_pareto_updated():
+    st.session_state.plot_pareto_up_to_date = True
 
 
 # if "data" not in st.session_state:
@@ -230,6 +235,7 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         buttons = colos[0].columns([1,1])
         modelbutton = buttons[0].empty()
         plotbutton = buttons[1].empty()
+        plotparetobutton = buttons[1].empty()
         # Check constraints
         if len(feature_constraints) > 0:
             constraint_results = check_constraints(data, feature_constraints)
@@ -337,7 +343,9 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
             len(responses) == 2 and
             st.session_state['plot_up_to_date'] == True and
             st.session_state['bo'].model is not None and
-            plotbutton.button("Plot Pareto frontiers", type="primary")):
+            plotparetobutton.button("Plot Pareto frontiers", type="primary",
+                                    disabled=st.session_state['plot_pareto_up_to_date'],
+                                    on_click=plot_pareto_updated)):
             figpareto = st.session_state['bo'].plot_pareto_frontier()
             if figpareto is not None:
                 st.plotly_chart(figpareto, key=f"figpareto")
