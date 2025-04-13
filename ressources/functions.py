@@ -241,28 +241,21 @@ def check_ranges(ranges):
     return message, invalid
 
 # @st.cache_data
-def update_model(bo, features, outcomes, 
+def update_model(features, outcomes, 
                  factor_ranges, Nexp, maximize, 
                  fixed_features, feature_constraints, sampler):
-    if (bo is None):
-        print("\n\n\n\nbo is None\n\n\n")
-    elif features != bo.features:
-        print("\n\n\n\nfeatures != bo.features\n\n\n")
-        print(bo.features)
-        print(features)
-    elif outcomes != bo.outcomes:
-        print("\n\n\n\noutcomes != bo.outcomes\n\n\n")
-    elif factor_ranges != bo.ranges:
-        print("\n\n\n\nfactor_ranges != bo.ranges\n\n\n")
-    elif maximize != bo.maximize:
-        print("\n\n\n\nmaximize != bo.maximize\n\n\n")
-    if (bo is None or 
+    """
+    Update the model if the parameters have changed.
+    """
+    # Check if the model is already in the session state
+    # or if the parameters necessitating reinitializing the model have changed
+    if (st.session_state['bo'] is None or 
             # if these changed, a new model needs to be created
-            features != bo.features or 
-            outcomes != bo.outcomes or
-            factor_ranges != bo.ranges or 
-            maximize != bo.maximize):
-        bo = AxBOExperiment(
+            features != st.session_state['bo'].features or 
+            outcomes != st.session_state['bo'].outcomes or
+            factor_ranges != st.session_state['bo'].ranges or 
+            maximize != st.session_state['bo'].maximize):
+        st.session_state['bo'] = AxBOExperiment(
             features=features, 
             outcomes=outcomes,
             ranges=factor_ranges,
@@ -274,20 +267,17 @@ def update_model(bo, features, outcomes,
             optim = sampler
             )
     else:
-        # see what parameters have changed and update the bo with this
+        # see if parameters that just play on the generation have changed
         # N
-        if Nexp != bo.N:
-            bo.N = Nexp
+        if Nexp != st.session_state['bo'].N:
+            st.session_state['bo'].N = Nexp
         # fixed_features
-        if fixed_features != bo.fixed_features:
-            bo.fixed_features = fixed_features
+        if fixed_features != st.session_state['bo'].fixed_features:
+            st.session_state['bo'].fixed_features = fixed_features
         # feature_constraints
-        if feature_constraints != bo.feature_constraints:
-            bo.feature_constraints = feature_constraints
+        if feature_constraints != st.session_state['bo'].feature_constraints:
+            st.session_state['bo'].feature_constraints = feature_constraints
         # sampler
-        if sampler != bo.optim:
-            bo.optim = sampler
-    return bo
+        if sampler != st.session_state['bo'].optim:
+            st.session_state['bo'].optim = sampler
 
-
-2

@@ -5,6 +5,11 @@
 # it under the terms of the Creative Commons Attribution-NonCommercial 
 # 4.0 International License. 
 import streamlit as st
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+warnings.simplefilter(action='ignore', category=DeprecationWarning)
+warnings.simplefilter(action='ignore', category=UserWarning)
+warnings.simplefilter(action='ignore', category=RuntimeError)
 
 import numpy as np
 import pandas as pd
@@ -500,8 +505,8 @@ Input data:
         """
         Initialize the AxClient with the experiment's parameters, objectives, and constraints.
         """
-        print('\n========   UPDATING MODEL   ========\n')
-        self.ax_client = AxClient()
+        print('\n========   INITIALIZING MODEL   ========\n')
+        self.ax_client = AxClient(verbose_logging=False, suppress_storage_errors=True)
         self.parameters = []
         for name, info in self._features.items():
             if info['type'] == 'text':
