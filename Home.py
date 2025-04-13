@@ -15,6 +15,7 @@ st.set_page_config(
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
+
 about_markdown = read_markdown_file("README.md")
 st.markdown(about_markdown, unsafe_allow_html=True)
 

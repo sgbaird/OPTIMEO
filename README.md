@@ -1,5 +1,7 @@
 # DoE Designer, Optimizer, and Analyzer
 
+![logo](ressources/logo.png)
+
 ---
 
 ## About this app
