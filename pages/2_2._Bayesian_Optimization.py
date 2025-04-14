@@ -42,6 +42,7 @@ def model_changed():
     st.session_state.model_up_to_date = False
     st.session_state.plot_up_to_date = False
     st.session_state.plot_pareto_up_to_date = False
+    st.session_state.bo = None
 def model_updated():
     st.session_state.model_up_to_date = True
 def plot_changed():
@@ -72,10 +73,11 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
                 help="The data file should contain the factors and the response variable.",
                 on_change=model_changed)
     if dataf is None:
-        colos[1].markdown(
+        container = colos[1].container(border=True)
+        container.markdown(
         "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can specify up to four responses. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header."
         )
-        colos[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+        container.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if dataf is not None:
         if Path(dataf.name).suffix == '.csv':
             data = pd.read_csv(dataf)
@@ -86,12 +88,12 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
         cols = data.columns.to_numpy()
         colos[1].dataframe(data, hide_index=False)
         mincol = 1 if 'run_order' in cols else 0
-        factors = colos[0].multiselect("Select the **factors** columns:", 
+        factors = colos[0].multiselect("Select the **factor(s)** column(s):", 
                 data.columns, default=cols[mincol:-1],
                 on_change=model_changed)
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        responses = colos[0].multiselect("Select the **response** column:", 
+        responses = colos[0].multiselect("Select the **response(s)** column(s):", 
                 available, max_selections=4, default=available[-1],
                 on_change=model_changed)
         # add option to change type of columns
@@ -261,17 +263,6 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         #                 colos[0].error(f"Constraint **{feature}** is invalid for the given data (see lines: {whichfails}). It was discarded.")
         #                 # drop feature_constraints[i]
         #                 outcome_constraints = [f for f in outcome_constraints if f != feature]
-        
-        # bo = AxBOExperiment(features=features, 
-        #                     outcomes=outcomes,
-        #                     ranges=factor_ranges,
-        #                     N = Nexp,
-        #                     maximize=maximize,
-        #                     # outcome_constraints=outcome_constraints,
-        #                     outcome_constraints=None,
-        #                     fixed_features=fixed_features,
-        #                     feature_constraints=feature_constraints,
-        #                     optim = sampler_list[samplerchoice])
         if modelbutton.button("Compute / Update model", type="primary", 
                               disabled=st.session_state['model_up_to_date'], 
                               on_click=model_updated):

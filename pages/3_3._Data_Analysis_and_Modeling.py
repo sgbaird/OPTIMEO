@@ -229,7 +229,7 @@ with tabs[1]: # visual assessment
             fig = px.scatter(x=toplot[factor], 
                              y=toplot[response], 
                              labels={'x': factor, 'y': response}, 
-                             title=f'Scatter Plot: {factor} vs {response}')
+                             title=f'{factor} vs {response}')
             fig.update_layout(
                 plot_bgcolor="white",  # White background
                 legend=dict(bgcolor='rgba(0,0,0,0)'),

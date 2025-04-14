@@ -12,6 +12,7 @@ from dexpy.model import ModelOrder
 from dexpy.design import coded_to_actual
 from doepy import build 
 from datetime import datetime
+from ressources.bo import *
 from ressources.functions import *
 from sklearn.preprocessing import LabelEncoder
 from pyDOE3 import *
@@ -42,7 +43,7 @@ st.write("""
 """)
 
 design_type = st.sidebar.selectbox("Design type",
-        ['Full Factorial', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
+        ['Sobol sequence','Full Factorial', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
 
 if design_type == 'Optimal':
     model_order = st.sidebar.selectbox("Model order:", 
@@ -74,7 +75,7 @@ with tab2:
         cols = st.columns(5)
         parameters[par]['name'] = cols[0].text_input(f"**Parameter {par+1}:**", 
                                             key=f"par{1+par}", 
-                                            value=defaultParNames[par])
+                                            value=defaultParNames[par]).replace(" ","_")
         parameters[par]['partype'] = cols[1].selectbox("Parameter Type", 
                                 ("Numerical", "Categorical"), key=f"cat{1+par}")
         if parameters[par]['partype'] == "Numerical":
@@ -85,10 +86,14 @@ with tab2:
             parameters[par]['values'] = np.array([low] + other + [high])
         else:
             other = cols[2].text_input("""Values (comma separated)""", value="A,B", key=f"other{1+par}")
-            le = LabelEncoder()
-            label = le.fit_transform(other.split(","))
-            parameters[par]['values'] = label
-            parameters[par]['encoder'] = le
+            if design_type!='Sobol sequence':
+                le = LabelEncoder()
+                label = le.fit_transform(other.split(","))
+                parameters[par]['values'] = label
+                parameters[par]['encoder'] = le
+            else:
+                parameters[par]['values'] = other.split(",")
+                parameters[par]['encoder'] = None
 
 # # # # # # # # # # # # # # # # 
 
@@ -96,6 +101,58 @@ pars = {par['name']:par['values'] for par in parameters}
 
 if design_type=='Full Factorial':
     design = build.full_fact(pars)
+elif design_type=='Sobol sequence':
+    Nexp = st.sidebar.number_input("Number of experiments:",
+                                    min_value=1, max_value=1000, value = 1)
+    ax_client = AxClient()
+    params = []
+    for par in parameters:
+        if par['partype'] == "Numerical":
+            params.append({'name': par['name'],
+                           'type': 'range', 
+                           'value_type': 'float',
+                           'bounds': [np.min(par['values']), np.max(par['values'])]})
+        else:
+            params.append({'name': par['name'],
+                           'type': 'choice', 
+                           'values': par['values']})
+    # Create the Ax experiment
+    ax_client.create_experiment(
+        name="DOE",
+        parameters=params,
+        objectives={"response": ObjectiveProperties(minimize=False)}
+    )
+    gs = GenerationStrategy(
+                steps=[GenerationStep(
+                            model=Models.SOBOL,
+                            num_trials=-1,
+                            should_deduplicate=True,  # Deduplicate the trials
+                            model_kwargs={"seed": 165478},
+                            model_gen_kwargs={},
+                        )
+                    ]
+                )
+    generator_run = gs.gen(
+                experiment=ax_client.experiment,
+                data=None,
+                n=Nexp,
+                # fixed_features=_fixed_features, 
+                pending_observations=get_pending_observation_features(
+                    ax_client.experiment
+                )
+            )
+    if Npars == 1:
+        trial = ax_client.experiment.new_trial(generator_run)
+    else:
+        trial = ax_client.experiment.new_batch_trial(generator_run)
+    trials = ax_client.get_trials_data_frame()
+    design = trials[trials['trial_status'] == 'CANDIDATE']
+    design = design.drop(columns=['trial_index', 
+                                  'trial_status', 
+                                  'arm_name',
+                                  'generation_method',
+                                  'generation_node'
+                                  ])
 elif design_type=='Fractional Factorial':
     # make all parameters categorical
     for par in range(Npars):
@@ -150,7 +207,7 @@ elif design_type=='Box-Behnken':
 
 
 for par in parameters:
-    if par['partype'] == "Categorical":
+    if par['partype'] == "Categorical" and design_type!='Sobol sequence':
         vals = design[par['name']].to_numpy()
         design[par['name']] = par['encoder'].inverse_transform([int(v) for v in vals])
         
@@ -191,8 +248,8 @@ with tab3:
     st.dataframe(design, hide_index=True)
     # plot the design
     Npars = len(parameters)
-    cols = st.columns(Npars - 1)
-
+    cols = st.columns(1 if Npars <= 3 else 2)
+    count = 0
     if len(design.values) > 0:
         if Npars <= 2:
             # Create 2D scatter plots
@@ -203,7 +260,7 @@ with tab3:
                             design,
                             x=facj['name'],
                             y=faci['name'],
-                            title=f"{faci['name']} vs {facj['name']}",
+                            title=f"""{faci['name']} vs {facj['name']}""",
                             labels={facj['name']: facj['name'], faci['name']: faci['name']}
                         )
                         fig.update_traces(marker=dict(size=10))
@@ -246,8 +303,9 @@ with tab3:
                         yaxis_title=faci['name'],
                         zaxis_title=fack['name']
                     ),
-                    title=f"3D Plot: {faci['name']} vs {facj['name']} vs {fack['name']}",
+                    title=f"{faci['name']} vs {facj['name']}<br>vs {fack['name']}",
                     margin=dict(l=10, r=10, t=50, b=50),
                     plot_bgcolor="white"
                 )
-                cols[k % (Npars - 1)].plotly_chart(fig, use_container_width=True)
+                cols[count%2].plotly_chart(fig, use_container_width=True)
+                count += 1

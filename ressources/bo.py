@@ -302,6 +302,15 @@ class AxBOExperiment:
         for name in self._features.keys():
             if self.ranges and name in self.ranges.keys():
                 self._features[name]['range'] = self.ranges[name]
+            else:
+                if self._features[name]['type'] == 'text':
+                    self._features[name]['range'] = list(set(self._features[name]['data']))
+                elif self._features[name]['type'] == 'int':
+                    self._features[name]['range'] = [int(np.min(self._features[name]['data'])),
+                                                     int(np.max(self._features[name]['data']))]
+                elif self._features[name]['type'] == 'float':
+                    self._features[name]['range'] = [float(np.min(self._features[name]['data'])),
+                                                     float(np.max(self._features[name]['data']))]
         if self.first_initialization_done:
             self.initialize_ax_client()
 
@@ -541,11 +550,12 @@ Input data:
             overwrite_existing_experiment=True
         )
 
-        for i in range(len(next(iter(self._outcomes.values()))['data'])):
-            params = {name: info['data'][i] for name, info in self._features.items()}
-            outcomes = {name: info['data'][i] for name, info in self._outcomes.items()}
-            self.ax_client.attach_trial(params)
-            self.ax_client.complete_trial(trial_index=i, raw_data=outcomes)
+        if len(next(iter(self._outcomes.values()))['data']) > 0:
+            for i in range(len(next(iter(self._outcomes.values()))['data'])):
+                params = {name: info['data'][i] for name, info in self._features.items()}
+                outcomes = {name: info['data'][i] for name, info in self._outcomes.items()}
+                self.ax_client.attach_trial(params)
+                self.ax_client.complete_trial(trial_index=i, raw_data=outcomes)
 
         self.set_model()
         self.set_gs()
