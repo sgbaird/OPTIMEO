@@ -4,7 +4,7 @@
 
 ## About this app
 
-[OPTIMA](https://optima.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
+[OPTIMA](https://optima-bo.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
 
 This App was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
 
@@ -27,7 +27,7 @@ Analyze the results of your experiments and model the response of your process.
 
 ## Installation
 
-You can use the app directly on its [Streamlit.io web page](https://optima.streamlit.app/).
+You can use the app directly on its [Streamlit.io web page](https://optima-bo.streamlit.app/).
 
 If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you need to have Python installed. You can download it [here](https://www.python.org/downloads/).
 
