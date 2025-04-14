@@ -287,14 +287,18 @@ with tabs[1]: # visual assessment
                                   showlegend=False, height=400)
 
             cols[i % ncols].plotly_chart(fig)
-    train_dataset = data.copy()
-    fig = sns.pairplot(
-        train_dataset,
-        kind="reg",
-        diag_kind="kde",
-        plot_kws={"scatter_kws": {"alpha": 0.1}},
-    )
-    st.pyplot(fig, use_container_width=True)
+        # Pairplot for all factors
+        st.write("##### Pairplot of all factors")
+        # Create a pairplot of the dataset
+        # Use a copy of the data to avoid modifying the original
+        train_dataset = data.copy()
+        fig = sns.pairplot(
+            train_dataset,
+            kind="reg",
+            diag_kind="kde",
+            plot_kws={"scatter_kws": {"alpha": 0.1}},
+        )
+        st.pyplot(fig, use_container_width=True)
 
 
 with tabs[2]: # simple model
