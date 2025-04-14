@@ -10,11 +10,19 @@ import numpy as np
 from ressources.functions import *
 import pandas as pd
 import statsmodels.formula.api as smf
-from ressources.functions import about_items
+from ressources.functions import about_items, bootstrap_coefficients
 import plotly.express as px
 import plotly.graph_objects as go
 from statsmodels.graphics.gofplots import qqplot
-
+# import ML models and scaling functions
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression, RidgeCV, ElasticNetCV
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import root_mean_squared_error, r2_score
+from sklearn.pipeline import make_pipeline
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
                    page_icon="ressources/icon.png", 
@@ -23,6 +31,11 @@ st.set_page_config(page_title="Data Analysis and Modeling",
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
+
+
+
+
+
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # Definition of User Interface
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -30,12 +43,18 @@ st.write("""
 # Data Analysis and Modeling
 """)
 
-tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model"])
+tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 'Machine Learning Model'])
 
 with tabs[0]: # data loading
     left, right = st.columns([2,3])
     datafile = left.file_uploader("Upload a CSV file (comma separated values)", type=["csv"], 
                     help="The data file should contain the factors and the response variable.")
+    if datafile is None:
+        container = right.container(border=True)
+        container.markdown(
+        "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can only specify one response. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header."
+        )
+        container.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if datafile is not None:
         data = pd.read_csv(datafile)
         data = clean_names(data, remove_special=True, case_type='preserve')
@@ -447,3 +466,194 @@ To remove the intercept, add `-1` at the end of the equation.""")
         st.write("")
         st.write("")
 
+with tabs[3]: # machine learning model
+    if datafile is not None and len(factors) > 0 and len(response) > 0:
+        # Choose machine learning model
+        model_sel = st.sidebar.selectbox("Select the machine learning model:", 
+                ["ElasticNetCV", "RidgeCV", "LinearRegression", "Random Forest", "Gaussian Process", "Gradient Boosting"])
+        split_size = st.sidebar.number_input("Test size:", min_value=0.0, value=0.2, max_value=1.)
+        X = data[factors]
+        y = data[response]
+        if split_size>0:
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=split_size)
+        else:
+            X_train, X_test, y_train, y_test = X, X, y, y
+        if model_sel == "ElasticNetCV":
+            model = make_pipeline(StandardScaler(), ElasticNetCV())
+        elif model_sel == "RidgeCV":
+            model = make_pipeline(StandardScaler(), RidgeCV())
+        elif model_sel == "LinearRegression":
+            model = make_pipeline(StandardScaler(), LinearRegression())
+        elif model_sel == "Random Forest":
+            model = make_pipeline(StandardScaler(), RandomForestRegressor())
+        elif model_sel == "Gaussian Process":
+            model = make_pipeline(StandardScaler(), GaussianProcessRegressor())
+        elif model_sel == "Gradient Boosting":
+            model = make_pipeline(StandardScaler(), GradientBoostingRegressor())
+        # Fit the model
+        coef_names = X_train.columns
+        model.fit(X_train, y_train)
+        bootstrap_coefs = bootstrap_coefficients(model[1], X, y, n_bootstrap=100, random_state=42)
+        # Calculate mean and standard deviation of coefficients
+        mean_coefs = np.mean(bootstrap_coefs, axis=0)
+        std_coefs = np.std(bootstrap_coefs, axis=0)
+        # make plot of predicted versus actual
+        cols = st.columns([1, 1])
+        fig = go.Figure()
+        # Add actual vs predicted line
+        fig.add_trace(go.Scatter(x=y_train, 
+                                 y=model.predict(X_train), 
+                                 mode='markers', 
+                                 marker=dict(size=12, color='royalblue'),
+                                 name='Training'))
+        fig.add_trace(go.Scatter(x=y_test, 
+                                 y=model.predict(X_test), 
+                                 mode='markers', 
+                                 marker=dict(size=12, color='orange'),
+                                 name='Validation'))
+        # Add 1:1 line
+        fig.add_shape(type="line", 
+                      x0=min(y_train), y0=min(y_train), 
+                      x1=max(y_train), y1=max(y_train),
+                      line=dict(color="Gray", width=1, dash="dash"))
+        fig.update_layout(
+            plot_bgcolor="white",  # White background
+            legend=dict(bgcolor='rgba(0,0,0,0)'),
+            xaxis_title=f'Actual {response}',
+            yaxis_title=f'Predicted {response}',
+            height=500,  # Adjust height as needed
+            margin=dict(l=10, r=10, t=120, b=50),
+            xaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            ),
+            yaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            )
+        )
+        # add the score in title
+        fig.update_layout(
+            title={
+                'text': f"Predicted vs Actual for {str(model[1])}<br>R²_test = {r2_score(y_test, model.predict(X_test)):.4f}  -  R²_train = {r2_score(y_train, model.predict(X_train)):.4f}<br>RMSE_test = {root_mean_squared_error(y_test, model.predict(X_test)):.4f}  -  RMSE_train = {root_mean_squared_error(y_train, model.predict(X_train)):.4f}",
+                'x': 0.45,
+                'xanchor': 'center'
+            }
+        )
+        cols[0].plotly_chart(fig)
+        
+        # make feature importance plot
+        fig = go.Figure()
+        pos_coefs = mean_coefs[mean_coefs > 0]
+        pos_coefs_names = coef_names[mean_coefs > 0]
+        neg_coefs = mean_coefs[mean_coefs < 0]
+        neg_coefs_names = coef_names[mean_coefs < 0]
+        # Add bars for positive mean coefficients
+        fig.add_trace(go.Bar(
+            y=[f"{pos_coefs_names[i]}" for i in range(len(pos_coefs))],
+            x=mean_coefs[mean_coefs > 0],
+            error_x=dict(type='data', array=std_coefs[mean_coefs > 0], visible=True),
+            orientation='h',
+            marker_color='royalblue',
+            name='Positive'
+        ))
+        fig.add_trace(go.Bar(
+            y=[f"{neg_coefs_names[i]}" for i in range(len(neg_coefs))],
+            x=-mean_coefs[mean_coefs < 0],
+            error_x=dict(type='data', array=std_coefs[mean_coefs < 0], visible=True),
+            orientation='h',
+            marker_color='orange',
+            name='Negative'
+        ))
+        # Update layout
+        features_in_log = st.sidebar.toggle("Log scale for features importance", value=True)
+        fig.update_layout(
+            title={
+                'text': f"Features importance for {str(model[1])}",
+                'x': 0.5,
+                'xanchor': 'center'
+            },
+            xaxis_title="Coefficient Value",
+            yaxis_title="Features",
+            barmode='relative',
+            margin=dict(l=150)
+        )
+        if features_in_log:
+            fig.update_xaxes(type="log")
+        else:
+            fig.update_xaxes(type="linear")
+        fig.update_layout(
+            plot_bgcolor="white",  # White background
+            legend=dict(bgcolor='rgba(0,0,0,0)'),
+            xaxis_title=f'Actual {response}',
+            yaxis_title=f'Predicted {response}',
+            height=500,  # Adjust height as needed
+            margin=dict(l=10, r=10, t=50, b=50),
+            xaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            ),
+            yaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            )
+        )
+        cols[1].plotly_chart(fig)
+        # make prediction plot
+        if model is not None:
+            st.write("##### Predict the response for a set of factors with this model:")
+            Xnew = []
+            left, right = st.columns(2)
+            for i, factor in enumerate(factors):
+                colsinput = left.columns(2)
+                colsinput[0].write(f"<p style='text-align:right;font-size:1.5em'><b>{factor}</b></p>", unsafe_allow_html=True)
+                if dtypes[factor] == 'object':
+                    # Non-encoded factor
+                    possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
+                    Xnew.append(str(colsinput[1].selectbox(f"{factor}", possible, key=f"{factor}ml", label_visibility='collapsed')))
+                else:
+                    Xnew.append(colsinput[1].number_input(f"{factor}",
+                                                        value=np.mean(data[factor]), key=f"{factor}ml", label_visibility='collapsed'))
+
+            # Encode the factors if they are categorical
+            for i, factor in enumerate(factors):
+                if dtypes[factor] == 'object':
+                    toencode = Xnew[i]
+                    Xnew[i] = encoders[factor].transform([toencode])[0]
+
+            # Convert Xnew to a numpy array and reshape
+            Xnew = np.array(Xnew).reshape(1, -1)
+
+            # Make prediction
+            prediction = model.predict(Xnew)[0]
+
+            right.write(f"<p style='text-align:center;font-size:1.5em'>Predicted {response}:<br><br><b>{prediction:.4g}</b></p>",
+                        unsafe_allow_html=True)
+        st.write("")
+        st.write("")
+        st.write("")
+        st.write("")

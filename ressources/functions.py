@@ -17,6 +17,14 @@ import pickle
 import os
 from sklearn.preprocessing import LabelEncoder
 from ressources.bo import *
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression, RidgeCV, ElasticNetCV
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.pipeline import make_pipeline
 
 class Capturing(list):
     def __enter__(self):
@@ -281,3 +289,39 @@ def update_model(features, outcomes,
         if sampler != st.session_state['bo'].optim:
             st.session_state['bo'].optim = sampler
 
+
+
+def bootstrap_coefficients(mod, X, y, n_bootstrap=100, random_state=None):
+    np.random.seed(random_state)
+    n_samples = X.shape[0]
+    results = []
+
+    for _ in range(n_bootstrap):
+        # Resample the data
+        indices = np.random.choice(np.arange(n_samples), size=n_samples, replace=True)
+        X_resample, y_resample = X.values[indices], y.values[indices]
+
+        # Fit the model
+        if isinstance(mod, RidgeCV):
+            model = RidgeCV(alphas=np.logspace(-3, 3, 10)).fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, ElasticNetCV):
+            model = ElasticNetCV(alphas=np.logspace(-3, 3, 10), l1_ratio=0.5).fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, LinearRegression):
+            model = LinearRegression().fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, RandomForestRegressor):
+            model = RandomForestRegressor().fit(X_resample, y_resample)
+            results.append(model.feature_importances_)
+        elif isinstance(mod, GradientBoostingRegressor):
+            model = GradientBoostingRegressor().fit(X_resample, y_resample)
+            results.append(model.feature_importances_)
+        elif isinstance(mod, GaussianProcessRegressor):
+            # Gaussian Process does not have coefficients or feature importances
+            model = GaussianProcessRegressor().fit(X_resample, y_resample)
+            results.append(np.zeros(X.shape[1]))  # Placeholder for Gaussian Process
+        else:
+            raise ValueError(f"Unsupported model type: {mod}")
+    
+    return np.array(results)
