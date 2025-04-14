@@ -132,10 +132,10 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
         if data is not None and len(factors) > 0 and len(responses) > 0:
             features, outcomes, messages = encode_data(
                 data, factors, responses, factor_ranges)
-        if len(messages) > 0:
-            key, value = list(messages.items())[0]
-            messages[key] = '⚠️   '+messages[key]
-            message = '''
+            if len(messages) > 0:
+                key, value = list(messages.items())[0]
+                messages[key] = '⚠️   '+messages[key]
+                message = '''
 
 ⚠️   '''.join(messages.values())
             placeholder.error(message)

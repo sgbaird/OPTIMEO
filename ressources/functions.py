@@ -98,8 +98,8 @@ about_items={
         'Get Help': 'mailto:colin.bousige@cnrs.fr',
         'Report a bug': "mailto:colin.bousige@cnrs.fr",
         'About': """
-        ## DOE-DOA
-        Version date 2024-10-01.
+        ## OPTIMA
+        Version date 2025-04-14.
 
         This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
         """
