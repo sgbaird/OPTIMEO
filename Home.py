@@ -5,8 +5,8 @@ from ressources.functions import *
 from ressources.functions import about_items
 
 st.set_page_config(
-    page_title="DOE Designer, Optimizer, and Analyzer",
-    page_icon=":home:",
+    page_title="OPTIMA",
+    page_icon="ressources/icon.png",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items=about_items
@@ -15,16 +15,18 @@ st.set_page_config(
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
-st.write('')
 cols=st.columns([4,1])
-cols[0].title("DoE Designer, Optimizer, and Analyzer")
+cols[0].title("OPTIMA")
+cols[0].subheader("Optimization Platform for Intelligent Experiment Management and Analysis")
+cols[1].write('')
+cols[1].write('')
 cols[1].image("ressources/logo.png", width=200)
 st.markdown("""
 ---
 
 ## About this app
 
-[DOE-DOA](https://doe-doa.streamlit.app/) is a web application that helps you design experiments, generate new experiments, and analyze the results of your experiments. It is designed to help you optimize your process by generating a Design of Experiment (DoE) and analyzing the results of your experiments. You can also generate new experiments to optimize your process, and analyze the results of your experiments.
+[OPTIMA](https://optima.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
 
 This App was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
 
@@ -47,15 +49,15 @@ Analyze the results of your experiments and model the response of your process.
 
 ## Installation
 
-You can use the app directly on its [Streamlit.io web page](https://doe-doa.streamlit.app/).
+You can use the app directly on its [Streamlit.io web page](https://optima.streamlit.app/).
 
 If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you need to have Python installed. You can download it [here](https://www.python.org/downloads/).
 
 Then, you can install the required packages by running the following command in your terminal:
 
 ```bash
-git clone https://github.com/colinbousige/DOE-DOA.git
-cd DOE-DOA
+git clone https://github.com/colinbousige/OPTIMA.git
+cd OPTIMA
 pip install -r requirements.txt
 ```
 
@@ -69,7 +71,7 @@ streamlit run Home.py
 
 ## Support
 
-This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/DOE-DOA).
+This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMA).
 
 ---
 
@@ -89,13 +91,13 @@ This work is related to the article "xxxx". Please cite this work if you publish
 }
 ```
 
-The source can be found [on Github](https://github.com/colinbousige/DOE-DOA), please consider citing it too:
+The source can be found [on Github](https://github.com/colinbousige/optima), please consider citing it too:
 
 ```bibtex
-@software{Bousige_DOE-DOA,
+@software{Bousige_bayoptima,
     author = {Bousige, Colin},
-    title = {{DOE-DOA}},
-    url = {https://github.com/colinbousige/DOE-DOA},
+    title = {{OPTIMA}},
+    url = {https://github.com/colinbousige/optima},
     doi = {xxxx}
 }
 ```

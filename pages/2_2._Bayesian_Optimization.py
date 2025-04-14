@@ -18,8 +18,9 @@ import pandas as pd
 import numpy as np
 from ressources.functions import about_items
 
-st.set_page_config(page_title="New experiments – Bayesian Optimisation",
-                   page_icon="📈", layout="wide", menu_items=about_items)
+st.set_page_config(page_title="Bayesian Optimization",
+                   page_icon="ressources/icon.png",
+                   layout="wide", menu_items=about_items)
 
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
@@ -57,7 +58,7 @@ def plot_pareto_updated():
 # Definition of User Interface
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 st.write("""
-# New experiments – Bayesian Optimisation
+# Bayesian Optimization
 """)
 
 
@@ -72,7 +73,7 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
                 on_change=model_changed)
     if dataf is None:
         colos[1].markdown(
-        "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). You can specify up to two responses. Try to avoid spaces and special characters in the column names. The first row of the file will be used as the header."
+        "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can specify up to four responses. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header."
         )
         colos[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if dataf is not None:
@@ -80,7 +81,7 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
             data = pd.read_csv(dataf)
         else:
             data = pd.read_excel(dataf)
-        data = clean_names(data)
+        data = clean_names(data, remove_special=True, case_type='preserve')
         left, right = st.columns([3,2])
         cols = data.columns.to_numpy()
         colos[1].dataframe(data, hide_index=False)
@@ -91,7 +92,7 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
         responses = colos[0].multiselect("Select the **response** column:", 
-                available, max_selections=2, default=available[-1],
+                available, max_selections=4, default=available[-1],
                 on_change=model_changed)
         # add option to change type of columns
         dtypesF = data[factors].dtypes
@@ -150,7 +151,7 @@ with tabs[1]:
         cols = st.sidebar.columns([1,1])
         maximize = {}
         for i in range(len(responses)):
-            temp = cols[i].radio(f"Direction for **{responses[i]}**:", ["Maximize", "Minimize"], 
+            temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", ["Maximize", "Minimize"], 
                                  on_change=model_changed)
             maximize[responses[i]] = True if temp == "Maximize" else False
         Nexp = st.sidebar.number_input("Number of experiments", 
@@ -340,7 +341,7 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
             if figopt is not None:
                 st.plotly_chart(figopt, key=f"figopt")
         if (st.session_state['bo'] is not None and 
-            len(responses) == 2 and
+            len(responses) >1 and
             st.session_state['plot_up_to_date'] == True and
             st.session_state['bo'].model is not None and
             plotparetobutton.button("Plot Pareto frontiers", type="primary",

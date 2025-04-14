@@ -17,7 +17,8 @@ from statsmodels.graphics.gofplots import qqplot
 
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
-                   page_icon="📈", layout="wide", menu_items=about_items)
+                   page_icon="ressources/icon.png", 
+                   layout="wide", menu_items=about_items)
 
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
@@ -37,6 +38,7 @@ with tabs[0]: # data loading
                     help="The data file should contain the factors and the response variable.")
     if datafile is not None:
         data = pd.read_csv(datafile)
+        data = clean_names(data, remove_special=True, case_type='preserve')
         cols = data.columns.to_numpy()
         right.dataframe(data, hide_index=True)
         mincol = 1 if 'run_order' in cols else 0
