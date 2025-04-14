@@ -13,6 +13,7 @@ import statsmodels.formula.api as smf
 from ressources.functions import about_items, bootstrap_coefficients
 import plotly.express as px
 import plotly.graph_objects as go
+from scipy.stats import gaussian_kde
 from statsmodels.graphics.gofplots import qqplot
 # import ML models and scaling functions
 from sklearn.preprocessing import StandardScaler
@@ -23,6 +24,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import root_mean_squared_error, r2_score
 from sklearn.pipeline import make_pipeline
+import seaborn as sns
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
                    page_icon="ressources/icon.png", 
@@ -30,10 +32,6 @@ st.set_page_config(page_title="Data Analysis and Modeling",
 
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
-
-
-
-
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -289,6 +287,14 @@ with tabs[1]: # visual assessment
                                   showlegend=False, height=400)
 
             cols[i % ncols].plotly_chart(fig)
+    train_dataset = data.copy()
+    fig = sns.pairplot(
+        train_dataset,
+        kind="reg",
+        diag_kind="kde",
+        plot_kws={"scatter_kws": {"alpha": 0.1}},
+    )
+    st.pyplot(fig, use_container_width=True)
 
 
 with tabs[2]: # simple model
@@ -471,7 +477,8 @@ with tabs[3]: # machine learning model
         # Choose machine learning model
         model_sel = st.sidebar.selectbox("Select the machine learning model:", 
                 ["ElasticNetCV", "RidgeCV", "LinearRegression", "Random Forest", "Gaussian Process", "Gradient Boosting"])
-        split_size = st.sidebar.number_input("Test size:", min_value=0.0, value=0.2, max_value=1.)
+        split_size = st.sidebar.number_input("Validation set size:", 
+                                             min_value=0.0, value=0.2, max_value=1.)
         X = data[factors]
         y = data[response]
         if split_size>0:
@@ -555,74 +562,73 @@ with tabs[3]: # machine learning model
         cols[0].plotly_chart(fig)
         
         # make feature importance plot
-        fig = go.Figure()
-        pos_coefs = mean_coefs[mean_coefs > 0]
-        pos_coefs_names = coef_names[mean_coefs > 0]
-        neg_coefs = mean_coefs[mean_coefs < 0]
-        neg_coefs_names = coef_names[mean_coefs < 0]
-        # Add bars for positive mean coefficients
-        fig.add_trace(go.Bar(
-            y=[f"{pos_coefs_names[i]}" for i in range(len(pos_coefs))],
-            x=mean_coefs[mean_coefs > 0],
-            error_x=dict(type='data', array=std_coefs[mean_coefs > 0], visible=True),
-            orientation='h',
-            marker_color='royalblue',
-            name='Positive'
-        ))
-        fig.add_trace(go.Bar(
-            y=[f"{neg_coefs_names[i]}" for i in range(len(neg_coefs))],
-            x=-mean_coefs[mean_coefs < 0],
-            error_x=dict(type='data', array=std_coefs[mean_coefs < 0], visible=True),
-            orientation='h',
-            marker_color='orange',
-            name='Negative'
-        ))
-        # Update layout
-        features_in_log = st.sidebar.toggle("Log scale for features importance", value=True)
-        fig.update_layout(
-            title={
-                'text': f"Features importance for {str(model[1])}",
-                'x': 0.5,
-                'xanchor': 'center'
-            },
-            xaxis_title="Coefficient Value",
-            yaxis_title="Features",
-            barmode='relative',
-            margin=dict(l=150)
-        )
-        if features_in_log:
-            fig.update_xaxes(type="log")
-        else:
-            fig.update_xaxes(type="linear")
-        fig.update_layout(
-            plot_bgcolor="white",  # White background
-            legend=dict(bgcolor='rgba(0,0,0,0)'),
-            xaxis_title=f'Actual {response}',
-            yaxis_title=f'Predicted {response}',
-            height=500,  # Adjust height as needed
-            margin=dict(l=10, r=10, t=50, b=50),
-            xaxis=dict(
-                showgrid=True,  # Enable grid
-                gridcolor="lightgray",  # Light gray grid lines
-                zeroline=False,
-                zerolinecolor="black",  # Black zero line
-                showline=True,
-                linewidth=1,
-                linecolor="black",  # Black border
-                mirror=True
-            ),
-            yaxis=dict(
-                showgrid=True,  # Enable grid
-                gridcolor="lightgray",  # Light gray grid lines
-                zeroline=False,
-                zerolinecolor="black",  # Black zero line
-                showline=True,
-                linewidth=1,
-                linecolor="black",  # Black border
-                mirror=True
+        if model_sel != "Gaussian Process":
+            fig = go.Figure()
+            pos_coefs = mean_coefs[mean_coefs > 0]
+            pos_coefs_names = coef_names[mean_coefs > 0]
+            neg_coefs = mean_coefs[mean_coefs < 0]
+            neg_coefs_names = coef_names[mean_coefs < 0]
+            # Add bars for positive mean coefficients
+            fig.add_trace(go.Bar(
+                y=[f"{pos_coefs_names[i]}" for i in range(len(pos_coefs))],
+                x=mean_coefs[mean_coefs > 0],
+                error_x=dict(type='data', array=std_coefs[mean_coefs > 0], visible=True),
+                orientation='h',
+                marker_color='royalblue',
+                name='Positive'
+            ))
+            fig.add_trace(go.Bar(
+                y=[f"{neg_coefs_names[i]}" for i in range(len(neg_coefs))],
+                x=-mean_coefs[mean_coefs < 0],
+                error_x=dict(type='data', array=std_coefs[mean_coefs < 0], visible=True),
+                orientation='h',
+                marker_color='orange',
+                name='Negative'
+            ))
+            # Update layout
+            features_in_log = st.sidebar.toggle("Log scale for features importance", value=True)
+            fig.update_layout(
+                title={
+                    'text': f"Features importance for {str(model[1])}",
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                xaxis_title="Coefficient Value",
+                yaxis_title="Features",
+                barmode='relative',
+                margin=dict(l=150)
             )
-        )
-        cols[1].plotly_chart(fig)
+            if features_in_log:
+                fig.update_xaxes(type="log")
+            else:
+                fig.update_xaxes(type="linear")
+            fig.update_layout(
+                plot_bgcolor="white",  # White background
+                legend=dict(bgcolor='rgba(0,0,0,0)'),
+                height=500,  # Adjust height as needed
+                margin=dict(l=10, r=10, t=120, b=50),
+                xaxis=dict(
+                    showgrid=True,  # Enable grid
+                    gridcolor="lightgray",  # Light gray grid lines
+                    zeroline=False,
+                    zerolinecolor="black",  # Black zero line
+                    showline=True,
+                    linewidth=1,
+                    linecolor="black",  # Black border
+                    mirror=True
+                ),
+                yaxis=dict(
+                    showgrid=True,  # Enable grid
+                    gridcolor="lightgray",  # Light gray grid lines
+                    zeroline=False,
+                    zerolinecolor="black",  # Black zero line
+                    showline=True,
+                    linewidth=1,
+                    linecolor="black",  # Black border
+                    mirror=True
+                )
+            )
+            cols[1].plotly_chart(fig)
         # make prediction plot
         if model is not None:
             st.write("##### Predict the response for a set of factors with this model:")
@@ -630,7 +636,7 @@ with tabs[3]: # machine learning model
             left, right = st.columns(2)
             for i, factor in enumerate(factors):
                 colsinput = left.columns(2)
-                colsinput[0].write(f"<p style='text-align:right;font-size:1.5em'><b>{factor}</b></p>", unsafe_allow_html=True)
+                colsinput[0].write(f"<p style='text-align:right;font-size:1.1em'><b>{factor}</b></p>", unsafe_allow_html=True)
                 if dtypes[factor] == 'object':
                     # Non-encoded factor
                     possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
@@ -651,7 +657,7 @@ with tabs[3]: # machine learning model
             # Make prediction
             prediction = model.predict(Xnew)[0]
 
-            right.write(f"<p style='text-align:center;font-size:1.5em'>Predicted {response}:<br><br><b>{prediction:.4g}</b></p>",
+            right.container(border=True).write(f"<p style='text-align:center;font-size:1.5em'>Predicted {response}:<br><br><b>{prediction:.4g}</b></p>",
                         unsafe_allow_html=True)
         st.write("")
         st.write("")
