@@ -359,42 +359,21 @@ To remove the intercept, add `-1` at the end of the equation.""")
             error_x=dict(type='data', array=res['error']),
             marker_color=colors,
             orientation='h',
-            name='Slope'
+            name='Slope',
+            showlegend=False  # Hide the legend entry for the bar trace
         ))
 
         # Update layout for log scale and labels
         fig.update_layout(
             xaxis_title='Magnitude of effect',
             xaxis_type="log",
-            height=400  # Adjust height as needed
-        )
-
-        # Add legend
-        fig.add_trace(go.Scatter(
-            x=[None], y=[None], mode='markers',
-            marker=dict(size=10, color='red'),
-            name='Negative'
-        ))
-
-        fig.add_trace(go.Scatter(
-            x=[None], y=[None], mode='markers',
-            marker=dict(size=10, color='green'),
-            name='Positive'
-        ))
-
-        # Add p-values as annotations
-        for i, p in enumerate(res['slope']):
-            fig.add_annotation(
-                x=p, y=i,
-                text=f"p={result.pvalues[res['terms'].iloc[i]]:.2g}",
-                showarrow=False,
-                xshift=10
-            )
-        fig.update_layout(
-            plot_bgcolor="white",  # White background
             height=500,  # Adjust height as needed
-            legend=dict(bgcolor='rgba(0,0,0,0)'),
-            margin=dict(l=10, r=10, t=50, b=50),
+            plot_bgcolor="white",  # White background
+            legend=dict(
+                orientation="h",  # Horizontal orientation
+                y=1.1  # Place legend on top
+            ),
+            margin=dict(l=10, r=150, t=50, b=50),  # Increase right margin for annotations
             xaxis=dict(
                 showgrid=True,  # Enable grid
                 gridcolor="lightgray",  # Light gray grid lines
@@ -416,6 +395,29 @@ To remove the intercept, add `-1` at the end of the equation.""")
                 mirror=True
             )
         )
+
+        # Add legend for Negative and Positive
+        fig.add_trace(go.Scatter(
+            x=[None], y=[None], mode='markers',
+            marker=dict(size=10, color='red'),
+            name='Negative'
+        ))
+        fig.add_trace(go.Scatter(
+            x=[None], y=[None], mode='markers',
+            marker=dict(size=10, color='green'),
+            name='Positive'
+        ))
+
+        # Add p-values as annotations outside the plot
+        for i, p in enumerate(res['slope']):
+            fig.add_annotation(
+                x=1.025,  # Place annotations outside the plot
+                y=i,
+                text=f"p = {result.pvalues[res['terms'].iloc[i]]:.2g}",
+                showarrow=False,
+                xref="paper",  # Use paper coordinates for x
+                xanchor='left'
+            )
 
         cols[1].plotly_chart(fig)
         # # # # # # # # # # # # # # # 
