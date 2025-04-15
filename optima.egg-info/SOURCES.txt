@@ -1,0 +1,11 @@
+README.md
+setup.py
+optima/__init__.py
+optima/analysis.py
+optima/bo.py
+optima/doe.py
+optima.egg-info/PKG-INFO
+optima.egg-info/SOURCES.txt
+optima.egg-info/dependency_links.txt
+optima.egg-info/requires.txt
+optima.egg-info/top_level.txt

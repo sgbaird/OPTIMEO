@@ -16,7 +16,7 @@ from janitor import clean_names
 import pickle
 import os
 from sklearn.preprocessing import LabelEncoder
-from ressources.bo import *
+from optima.bo import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, RidgeCV, ElasticNetCV
 from sklearn.gaussian_process import GaussianProcessRegressor
@@ -26,6 +26,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.pipeline import make_pipeline
 
+about_items={
+        'Get Help': 'mailto:colin.bousige@cnrs.fr',
+        'Report a bug': "mailto:colin.bousige@cnrs.fr",
+        'About': """
+        ## OPTIMA
+        Version date 2025-04-14.
+
+        This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
+        """
+    }
 class Capturing(list):
     def __enter__(self):
         self._stdout = sys.stdout
@@ -101,18 +111,6 @@ def write_equation(factors, response, order=1, quadratic=[], dtypes=None):
         for factor in quadratic:
             eqn += f'+ I({factor}**2) '
     return eqn
-
-about_items={
-        'Get Help': 'mailto:colin.bousige@cnrs.fr',
-        'Report a bug': "mailto:colin.bousige@cnrs.fr",
-        'About': """
-        ## OPTIMA
-        Version date 2025-04-14.
-
-        This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
-        """
-    }
-
 
 
 def train_model(X_train, y_train, model, model_name):
@@ -214,14 +212,6 @@ def encode_data2(data, factors):
             data[factor] = le.fit_transform([str(d) for d in data[factor]])
     return data, encoders, dtypes
 
-
-# def decode_data(data, factors, dtypes, encoders):
-#     for factor in factors:
-#         if dtypes[factor] == 'object':
-#             data[factor] = encoders[factor].inverse_transform([round(f) for f in data[factor]])
-#     return data
-
-
 # Function to check constraints
 def check_constraints(df, constraints):
     results = {}
@@ -263,7 +253,7 @@ def update_model(features, outcomes,
             outcomes != st.session_state['bo'].outcomes or
             factor_ranges != st.session_state['bo'].ranges or 
             maximize != st.session_state['bo'].maximize):
-        st.session_state['bo'] = AxBOExperiment(
+        st.session_state['bo'] = BOExperiment(
             features=features, 
             outcomes=outcomes,
             ranges=factor_ranges,

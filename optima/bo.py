@@ -13,6 +13,7 @@ warnings.simplefilter(action='ignore', category=RuntimeError)
 
 import numpy as np
 import pandas as pd
+from janitor import clean_names
 from typing import Any, Dict, List, Optional, Union
 
 from ax.core.observation import ObservationFeatures, TrialStatus
@@ -74,6 +75,7 @@ def read_experimental_data(file_path: str, out_pos=[-1]) -> (Dict[str, Dict[str,
     - Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]: Formatted features and outcomes dictionaries.
     """
     data = pd.read_csv(file_path)
+    data = clean_names(data, remove_special=True, case_type='preserve')
     outcome_column_name = data.columns[out_pos]
     features = data.loc[:, ~data.columns.isin(outcome_column_name)].copy()
     outcomes = data[outcome_column_name].copy()
@@ -89,7 +91,7 @@ def read_experimental_data(file_path: str, out_pos=[-1]) -> (Dict[str, Dict[str,
             max_val = features[column].max()
             feature_type = 'int' if features[column].dtype == 'int64' else 'float'
             feature_definitions[column] = {'type': feature_type,
-                                           'range': (min_val, max_val)}
+                                           'range': [min_val, max_val]}
 
     formatted_features = {name: {'type': info['type'],
                                  'data': features[name].tolist(),
@@ -115,9 +117,9 @@ def read_experimental_data(file_path: str, out_pos=[-1]) -> (Dict[str, Dict[str,
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-class AxBOExperiment:
+class BOExperiment:
     """
-    AxBOExperiment is a class designed to facilitate Bayesian Optimization experiments using the Ax platform.
+    BOExperiment is a class designed to facilitate Bayesian Optimization experiments using the Ax platform.
     It encapsulates the experiment setup, including features, outcomes, constraints, and optimization methods.
 
     Attributes
@@ -199,7 +201,7 @@ class AxBOExperiment:
     Example
     -------
     >>> features, outcomes = read_experimental_data('data.csv', out_pos=[-2, -1])
-    >>> experiment = AxBOExperiment(features, outcomes, N=5, maximize={'out1':True, 'out2':False})
+    >>> experiment = BOExperiment(features, outcomes, N=5, maximize={'out1':True, 'out2':False})
     >>> experiment.suggest_next_trials()
     >>> experiment.plot_model(metricname='outcome1')
     >>> experiment.plot_model(metricname='outcome2', linear=True)
@@ -226,7 +228,7 @@ class AxBOExperiment:
                  feature_constraints: Optional[List[Dict[str, Any]]] = None,
                  optim='bo') -> None:
         """
-        Initialize the AxBOExperiment with features, outcomes, and optimization settings.
+        Initialize the BOExperiment with features, outcomes, and optimization settings.
 
         Parameters
         ----------
@@ -240,7 +242,7 @@ class AxBOExperiment:
         ranges: Optional[Dict[str, Dict[str, Any]]], optional
             A dictionary defining the ranges of the features. Default is None.
             If not provided, the ranges will be inferred from the features data.
-            The ranges should be in the format {'feature_name': (minvalue,maxvalue)}.
+            The ranges should be in the format {'feature_name': [minvalue,maxvalue]}.
 
         N: int, optional
             The number of trials to suggest in each optimization step. Must be a positive integer. Default is 1.
@@ -494,10 +496,10 @@ class AxBOExperiment:
 
     def __str__(self):
         """
-        Return a string representation of the AxBOExperiment instance.
+        Return a string representation of the BOExperiment instance.
         """
         return f"""
-AxBOExperiment(
+BOExperiment(
     N={self.N},
     maximize={self.maximize},
     outcome_constraints={self.outcome_constraints},
@@ -619,7 +621,7 @@ Input data:
         for i in pending_trials:
             self.ax_client.experiment.trials[i].mark_abandoned()
     
-    def suggest_next_trials(self):
+    def suggest_next_trials(self, with_predicted=True):
         """
         Suggest the next set of trials based on the current model and optimization strategy.
 
@@ -639,13 +641,16 @@ Input data:
         trials = self.ax_client.get_trials_data_frame()
         trials = trials[trials['trial_status'] == 'CANDIDATE']
         trials = trials[[name for name in self.names]]
-        topred = [trials.iloc[i].to_dict() for i in range(len(trials))]
-        preds = pd.DataFrame(self.predict(topred))
-        # add 'predicted_' to the names of the pred dataframe
-        preds.columns = [f'Predicted_{col}' for col in preds.columns]
-        preds = preds.reset_index(drop=True)
-        trials = trials.reset_index(drop=True)
-        return pd.concat([trials, preds], axis=1)
+        if with_predicted:
+            topred = [trials.iloc[i].to_dict() for i in range(len(trials))]
+            preds = pd.DataFrame(self.predict(topred))
+            # add 'predicted_' to the names of the pred dataframe
+            preds.columns = [f'Predicted_{col}' for col in preds.columns]
+            preds = preds.reset_index(drop=True)
+            trials = trials.reset_index(drop=True)
+            return pd.concat([trials, preds], axis=1)
+        else:
+            return trials
 
     def predict(self, params):
         """
@@ -686,18 +691,22 @@ Input data:
         for k, v in zip(params.keys(), params.values()):
             if k not in self._features:
                 raise ValueError(f"Parameter '{k}' not found in features")
+            if isinstance(v, np.ndarray):
+                v = v.tolist()
             if not isinstance(v, list):
                 v = [v]
             self._features[k]['data'] += v
         for k, v in zip(outcomes.keys(), outcomes.values()):
             if k not in self._outcomes:
                 raise ValueError(f"Outcome '{k}' not found in outcomes")
+            if isinstance(v, np.ndarray):
+                v = v.tolist()
             if not isinstance(v, list):
                 v = [v]
             self._outcomes[k]['data'] += v
         self.initialize_ax_client()
 
-    def plot_model(self, metricname=None, slice_values=None, linear=False):
+    def plot_model(self, metricname=None, slice_values={}, linear=False):
         """
         Plot the model's predictions for the experiment's parameters and outcomes.
 

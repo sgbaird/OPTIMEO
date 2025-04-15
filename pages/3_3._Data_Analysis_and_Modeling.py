@@ -13,7 +13,6 @@ import statsmodels.formula.api as smf
 from ressources.functions import about_items, bootstrap_coefficients
 import plotly.express as px
 import plotly.graph_objects as go
-from scipy.stats import gaussian_kde
 from statsmodels.graphics.gofplots import qqplot
 # import ML models and scaling functions
 from sklearn.preprocessing import StandardScaler
@@ -45,8 +44,11 @@ tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 
 
 with tabs[0]: # data loading
     left, right = st.columns([2,3])
-    datafile = left.file_uploader("Upload a CSV file (comma separated values)", type=["csv"], 
-                    help="The data file should contain the factors and the response variable.")
+    datafile = left.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods and odt).
+
+For Excel-like files, make sure the data start in the A1 cell.""", 
+                type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
+                help="The data file should contain the factors and the response variable.")
     if datafile is None:
         container = right.container(border=True)
         container.markdown(
@@ -54,7 +56,10 @@ with tabs[0]: # data loading
         )
         container.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if datafile is not None:
-        data = pd.read_csv(datafile)
+        if Path(datafile.name).suffix == '.csv':
+            data = pd.read_csv(datafile)
+        else:
+            data = pd.read_excel(datafile)
         data = clean_names(data, remove_special=True, case_type='preserve')
         cols = data.columns.to_numpy()
         right.dataframe(data, hide_index=True)
@@ -91,6 +96,8 @@ with tabs[0]: # data loading
 
 
 with tabs[1]: # visual assessment
+    if datafile is None:
+        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Assuming 'data', 'response', 'factors', 'responsevals', and 'dtypes' are defined
         toplot = data.copy()
@@ -302,6 +309,8 @@ with tabs[1]: # visual assessment
 
 
 with tabs[2]: # simple model
+    if datafile is None:
+        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         cols = st.columns([1,1,4])
         order = cols[0].number_input("Interactions order:", 
@@ -477,6 +486,8 @@ To remove the intercept, add `-1` at the end of the equation.""")
         st.write("")
 
 with tabs[3]: # machine learning model
+    if datafile is None:
+        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
         model_sel = st.sidebar.selectbox("Select the machine learning model:", 

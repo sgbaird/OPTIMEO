@@ -13,7 +13,7 @@ warnings.simplefilter(action='ignore', category=DeprecationWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 warnings.simplefilter(action='ignore', category=RuntimeError)
 from ressources.functions import *
-from ressources.bo import *
+from optima.bo import *
 import pandas as pd
 import numpy as np
 from ressources.functions import about_items
@@ -149,6 +149,8 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
 
 
 with tabs[1]:
+    if dataf is None:
+        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
         cols = st.sidebar.columns([1,1])
         maximize = {}
@@ -344,6 +346,8 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
 
 
 with tabs[2]:
+    if dataf is None:
+        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
         st.write("#### Select the parameters for prediction of the response")
         cols = st.columns([1,1])

@@ -1,3 +1,40 @@
+Metadata-Version: 2.2
+Name: optima
+Version: 0.1.0
+Summary: OPTIMA: A Python package for optimization and design of experiments
+Home-page: https://github.com/colinbousige/OPTIMA
+Author: Colin Bousige
+Author-email: colin.bousige@cnrs.fr
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: Creative Commons Attribution-NonCommercial 4.0 International License
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.6
+Description-Content-Type: text/markdown
+Requires-Dist: streamlit==1.44.1
+Requires-Dist: ax-platform==0.5.0
+Requires-Dist: seaborn
+Requires-Dist: definitive_screening_design==0.5.0
+Requires-Dist: dexpy==0.12
+Requires-Dist: doepy==0.0.1
+Requires-Dist: matplotlib==3.10.1
+Requires-Dist: numpy
+Requires-Dist: pandas
+Requires-Dist: plotly
+Requires-Dist: pyDOE3==1.0.4
+Requires-Dist: pyjanitor==0.31.0
+Requires-Dist: scikit_learn==1.6.1
+Requires-Dist: statsmodels
+Requires-Dist: xlsxwriter==3.2.2
+Dynamic: author
+Dynamic: author-email
+Dynamic: classifier
+Dynamic: description
+Dynamic: description-content-type
+Dynamic: home-page
+Dynamic: requires-dist
+Dynamic: requires-python
+Dynamic: summary
+
 # OPTIMA – Optimization Platform for Intelligent Experiment Management and Analysis <img src="ressources/logo.png" width="100"/>
 
 ---
