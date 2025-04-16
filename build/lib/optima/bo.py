@@ -779,12 +779,7 @@ Input data:
                 trace.marker.size = 10
                 trace.marker.line.width = 2
                 trace.marker.line.color = 'black'
-                trace.hoverinfo = "text"  # Enable custom text for hover
-                trace.text = [
-                    f"""<b>Sample {i+1}:</b>
-{' '.join([f"<br>{k}: {v}" for k, v in self.data.iloc[i].items()])}
-""" for i in range(len(self.data))
-                ]
+                trace.text = [t.replace('Arm', '<b>Sample').replace("_0","</b>") for t in trace.text]
             if trace.legendgroup == cand_name:  # Modify only the "Candidate" markers
                 trace.marker.color = "red"  # Change marker color
                 trace.name = cand_name
@@ -794,12 +789,12 @@ Input data:
                 # Add hover info
                 trace.hoverinfo = "text"  # Enable custom text for hover
                 trace.hoverlabel = dict(bgcolor="#f8d5cd", font_color='black')
+                trace.text = [t.replace("<i>","").replace("</i>","") for t in trace.text]
                 trace.text = [
-                    f"""<b>Candidate {i+1}:</b>
-{' '.join([f"<br>{k}: {v}" for k, v in trials.iloc[i].items()])}
-""" for i in range(len(trials))
+                    f"<b>Candidate {i+1}</b><br>{'<br>'.join([f'{col}: {val}' for col, val in trials.iloc[i].items()])}"
+                    for t in trace.text
+                    for i in range(len(trials))
                 ]
-
         plotly_fig.update_layout(
             plot_bgcolor="white",  # White background
             legend=dict(bgcolor='rgba(0,0,0,0)'),

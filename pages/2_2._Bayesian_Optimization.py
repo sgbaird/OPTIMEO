@@ -129,6 +129,7 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
                 factor_ranges[factor][1] = colos[3].number_input(f"Max value of **{factor}**",
                     value=factor_ranges[factor][1], key=f"max_{factor}", label_visibility='collapsed',
                     on_change=model_changed)
+        messages = []
         if data is not None and len(factors) > 0 and len(responses) > 0:
             features, outcomes, messages = encode_data(
                 data, factors, responses, factor_ranges)
@@ -138,10 +139,10 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
                 message = '''
 
 ⚠️   '''.join(messages.values())
-            placeholder.error(message)
-            for name,messsage in messages.items():
-                # drop factors[name]
-                factors.remove(name)
+                placeholder.error(message)
+                for name,messsage in messages.items():
+                    # drop factors[name]
+                    factors.remove(name)
         st.write("")
         st.write("")
         st.write("")
