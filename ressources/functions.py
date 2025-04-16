@@ -36,15 +36,6 @@ about_items={
         This app was made by [Colin Bousige](https://lmi.cnrs.fr/author/colin-bousige/). Contact me for support, requests, or to signal a bug.
         """
     }
-class Capturing(list):
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio    # free up some memory
-        sys.stdout = self._stdout
 
 def read_markdown_file(markdown_file):
     """Read a md file and return the content"""
@@ -78,49 +69,6 @@ def write_poly(pp):
             out += f"{'' if signs[i]<0 else ' +'} {p[i]}x<sup>{n}</sup>"
     out = out.replace('-', '–')
     return(out)
-
-def write_equation(factors, response, order=1, quadratic=[], dtypes=None):
-    """Write R-style equation for multivariate fitting procedure using the statsmodels package"""
-    myfactors = factors.copy()
-    if dtypes is not None:
-        print(dtypes)
-        for i in range(len(factors)):
-            if dtypes[factors[i]] == 'object':
-                myfactors[i] = f'C({myfactors[i]})'
-    eqn = f'{response} ~ {myfactors[0]} '
-    for factor in myfactors[1:]:
-        eqn += f'+ {factor} ' 
-    if order>1:
-        for i in range(len(myfactors)): 
-            for j in range(i + 1, len(myfactors)): 
-                eqn += f'+ {myfactors[i]}:{myfactors[j]} '
-    if order>2:
-        for i in range(len(myfactors)): 
-            for j in range(i + 1, len(myfactors)): 
-                for k in range(j + 1, len(myfactors)): 
-                    eqn += f'+ {myfactors[i]}:{myfactors[j]}:{myfactors[k]} '
-    if order>3:
-        for i in range(len(myfactors)): 
-            for j in range(i + 1, len(myfactors)): 
-                for k in range(j + 1, len(myfactors)): 
-                    for l in range(k + 1, len(myfactors)): 
-                        eqn += f'+ {myfactors[i]}:{myfactors[j]}:{myfactors[k]}:{myfactors[l]} '
-    if order>4:
-        st.warning("Only orders below 5 can be consedired.")
-    if len(quadratic)>0:
-        for factor in quadratic:
-            eqn += f'+ I({factor}**2) '
-    return eqn
-
-
-def train_model(X_train, y_train, model, model_name):
-    model.fit(X_train, y_train)
-    # saving the trained model
-    out = f"./trained_model/{model_name}.pkl"
-    out = out.replace(" ", "_")
-    with open(out, 'wb') as file:
-        pickle.dump(model, file)
-    return model
 
 
 # @st.cache_data
@@ -281,37 +229,3 @@ def update_model(features, outcomes,
 
 
 
-def bootstrap_coefficients(mod, X, y, n_bootstrap=100, random_state=None):
-    np.random.seed(random_state)
-    n_samples = X.shape[0]
-    results = []
-
-    for _ in range(n_bootstrap):
-        # Resample the data
-        indices = np.random.choice(np.arange(n_samples), size=n_samples, replace=True)
-        X_resample, y_resample = X.values[indices], y.values[indices]
-
-        # Fit the model
-        if isinstance(mod, RidgeCV):
-            model = RidgeCV(alphas=np.logspace(-3, 3, 10)).fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, ElasticNetCV):
-            model = ElasticNetCV(alphas=np.logspace(-3, 3, 10), l1_ratio=0.5).fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, LinearRegression):
-            model = LinearRegression().fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, RandomForestRegressor):
-            model = RandomForestRegressor().fit(X_resample, y_resample)
-            results.append(model.feature_importances_)
-        elif isinstance(mod, GradientBoostingRegressor):
-            model = GradientBoostingRegressor().fit(X_resample, y_resample)
-            results.append(model.feature_importances_)
-        elif isinstance(mod, GaussianProcessRegressor):
-            # Gaussian Process does not have coefficients or feature importances
-            model = GaussianProcessRegressor().fit(X_resample, y_resample)
-            results.append(np.zeros(X.shape[1]))  # Placeholder for Gaussian Process
-        else:
-            raise ValueError(f"Unsupported model type: {mod}")
-    
-    return np.array(results)

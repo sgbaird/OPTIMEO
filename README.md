@@ -12,6 +12,10 @@ This App was developed within the frame of an academic research project, MOFSONG
 
 ## Usage
 
+### With the web app
+
+You can use the app directly on its [Streamlit.io web page](https://optima-bo.streamlit.app/), or run it locally (see [Installation](#installation)).
+
 Choose the page you want to use in the sidebar, and follow the instructions. Hover the mouse on the question marks to get more information about the parameters.
 
 **1. Design of Experiment:**  
@@ -22,6 +26,68 @@ From a previous set of experiments and their results, generate a new set of expe
 
 **3. Data analysis and modeling:**  
 Analyze the results of your experiments and model the response of your process.
+
+### With the Python package
+
+You can also use the app as a Python package (see [Installation](#installation)). You can import the different modules of the app and use them in your own code. Here is an example of how to use the app as a package:
+
+#### For Design of Experiment
+
+A more detailed example is given in [the notebook](notebooks/doe.ipynb)
+
+```python
+from optima.doe import * 
+parameters = [
+    {'name': 'Temperature', 'type': 'integer', 'values': [20, 40]},
+    {'name': 'Pressure', 'type': 'float', 'values': [1, 2, 3]},
+    {'name': 'Catalyst', 'type': 'categorical', 'values': ['A', 'B', 'C']}
+]
+doe = DesignOfExperiments(
+    type='Sobol sequence',
+    parameters=parameters,
+    Nexp=8
+)
+doe
+```
+
+#### For Bayesian Optimization
+
+A more detailed example is given in [the notebook](notebooks/bo.ipynb)
+
+```python
+from optima.bo import * 
+
+features, outcomes = read_experimental_data('experimental_data.csv', out_pos=[-1])
+bo = BOExperiment(
+    features=features, 
+    outcomes=outcomes,
+    N = 2, # number of new points to generate
+    maximize=True, # we want to maximize the response
+    outcome_constraints=None,
+    fixed_features=None, 
+    feature_constraints=None, 
+    optim = 'bo'
+)
+bo.suggest_next_trials()
+```
+
+#### For Data Analysis
+
+A more detailed example is given in [the notebook](notebooks/MLanalysis.ipynb)
+
+```python
+from optima.analysis import * 
+
+data = pd.read_csv('dataML.csv')
+factors = data.columns[:-1]
+response = data.columns[-1]
+analysis = DataAnalysis(data, factors, response)
+analysis.model_type = "ElasticNetCV"
+MLmodel = analysis.compute_ML_model()
+figs = analysis.plot_ML_model()
+for fig in figs:
+    fig.show()
+```
 
 ---
 
@@ -36,7 +102,10 @@ Then, you can install the required packages by running the following command in 
 ```bash
 git clone https://github.com/colinbousige/OPTIMA.git
 cd OPTIMA
-pip install -r requirements.txt
+# either
+pip install . # to install OPTIMA as a package
+# or
+pip install -r requirements.txt # to install the required packages
 ```
 
 Finally, you can run the app by running the following command in your terminal:
@@ -45,9 +114,12 @@ Finally, you can run the app by running the following command in your terminal:
 streamlit run Home.py
 ```
 
+If you did `pip install .`, you can upgrade to new a version or uninstall with:
+
 ```bash
-# install the optima package
-pip install .
+# upgrade the optima package
+cd OPTIMA
+pip install --upgrade .
 # uninstall the optima package
 pip uninstall optima
 ```
