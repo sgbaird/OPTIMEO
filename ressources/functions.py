@@ -16,7 +16,7 @@ from janitor import clean_names
 import pickle
 import os
 from sklearn.preprocessing import LabelEncoder
-from optima.bo import *
+from optimeo.bo import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LinearRegression, RidgeCV, ElasticNetCV
 from sklearn.gaussian_process import GaussianProcessRegressor

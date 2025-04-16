@@ -13,7 +13,7 @@ warnings.simplefilter(action='ignore', category=DeprecationWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 warnings.simplefilter(action='ignore', category=RuntimeError)
 from ressources.functions import *
-from optima.bo import *
+from optimeo.bo import *
 import pandas as pd
 import numpy as np
 from ressources.functions import about_items

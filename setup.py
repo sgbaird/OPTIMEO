@@ -1,9 +1,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='optima',
+    name='optimeo',
     version='0.1.0',
-    packages=find_packages(include=['optima', 'optima.*']),
+    packages=find_packages(include=['optimeo', 'optimeo.*']),
     install_requires=[
         "streamlit==1.44.1",
         "ax-platform==0.5.0",
@@ -21,18 +21,12 @@ setup(
         "statsmodels",
         "xlsxwriter==3.2.2"
     ],
-    entry_points={
-        'console_scripts': [
-            # If you have any command-line scripts, list them here, e.g.,
-            # 'optima-cli=optima.cli:main',
-        ],
-    },
     author='Colin Bousige',
     author_email='colin.bousige@cnrs.fr',
     description='OPTIMA: A Python package for optimization and design of experiments',
     long_description=open('README.md').read() if os.path.exists('README.md') else '',
     long_description_content_type='text/markdown',
-    url='https://github.com/colinbousige/OPTIMA',  # Replace with your project's URL
+    url='https://github.com/colinbousige/OPTIMEO',  # Replace with your project's URL
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: Creative Commons Attribution-NonCommercial 4.0 International License',

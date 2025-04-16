@@ -1,10 +1,10 @@
-# OPTIMA – Optimization Platform for Intelligent Experiment Management and Analysis <img src="ressources/logo.png" width="100"/>
+# OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
 
 ---
 
 ## About this app
 
-[OPTIMA](https://optima-bo.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
+[OPTIMEO](https://optimeo.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
 
 This App was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
 
@@ -14,7 +14,7 @@ This App was developed within the frame of an academic research project, MOFSONG
 
 ### With the web app
 
-You can use the app directly on its [Streamlit.io web page](https://optima-bo.streamlit.app/), or run it locally (see [Installation](#installation)).
+You can use the app directly on its [Streamlit.io web page](https://optimeo.streamlit.app/), or run it locally (see [Installation](#installation)).
 
 Choose the page you want to use in the sidebar, and follow the instructions. Hover the mouse on the question marks to get more information about the parameters.
 
@@ -36,7 +36,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 A more detailed example is given in [the notebook](notebooks/doe.ipynb)
 
 ```python
-from optima.doe import * 
+from optimeo.doe import * 
 parameters = [
     {'name': 'Temperature', 'type': 'integer', 'values': [20, 40]},
     {'name': 'Pressure', 'type': 'float', 'values': [1, 2, 3]},
@@ -55,7 +55,7 @@ doe
 A more detailed example is given in [the notebook](notebooks/bo.ipynb)
 
 ```python
-from optima.bo import * 
+from optimeo.bo import * 
 
 features, outcomes = read_experimental_data('experimental_data.csv', out_pos=[-1])
 bo = BOExperiment(
@@ -76,7 +76,7 @@ bo.suggest_next_trials()
 A more detailed example is given in [the notebook](notebooks/MLanalysis.ipynb)
 
 ```python
-from optima.analysis import * 
+from optimeo.analysis import * 
 
 data = pd.read_csv('dataML.csv')
 factors = data.columns[:-1]
@@ -93,17 +93,17 @@ for fig in figs:
 
 ## Installation
 
-You can use the app directly on its [Streamlit.io web page](https://optima-bo.streamlit.app/).
+You can use the app directly on its [Streamlit.io web page](https://optimeo.streamlit.app/).
 
 If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you need to have Python installed. You can download it [here](https://www.python.org/downloads/).
 
 Then, you can install the required packages by running the following command in your terminal:
 
 ```bash
-git clone https://github.com/colinbousige/OPTIMA.git
-cd OPTIMA
+git clone https://github.com/colinbousige/OPTIMEO.git
+cd OPTIMEO
 # either
-pip install . # to install OPTIMA as a package
+pip install . # to install OPTIMEO as a package
 # or
 pip install -r requirements.txt # to install the required packages
 ```
@@ -117,18 +117,18 @@ streamlit run Home.py
 If you did `pip install .`, you can upgrade to new a version or uninstall with:
 
 ```bash
-# upgrade the optima package
-cd OPTIMA
+# upgrade the optimeo package
+cd OPTIMEO
 pip install --upgrade .
-# uninstall the optima package
-pip uninstall optima
+# uninstall the optimeo package
+pip uninstall optimeo
 ```
 
 ---
 
 ## Support
 
-This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMA).
+This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMEO).
 
 ---
 
@@ -148,13 +148,13 @@ This work is related to the article "xxxx". Please cite this work if you publish
 }
 ```
 
-The source can be found [on Github](https://github.com/colinbousige/optima), please consider citing it too:
+The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it too:
 
 ```bibtex
-@software{Bousige_bayoptima,
+@software{Bousige_optimeo,
     author = {Bousige, Colin},
-    title = {{OPTIMA}},
-    url = {https://github.com/colinbousige/optima},
+    title = {{OPTIMEO}},
+    url = {https://github.com/colinbousige/optimeo},
     doi = {xxxx}
 }
 ```

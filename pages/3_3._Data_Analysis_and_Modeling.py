@@ -11,7 +11,7 @@ from ressources.functions import *
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from optima.analysis import *
+from optimeo.analysis import *
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
                    page_icon="ressources/icon.png", 

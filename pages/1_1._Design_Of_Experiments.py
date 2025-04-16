@@ -12,7 +12,7 @@ from ressources.functions import about_items
 from io import BytesIO
 import xlsxwriter
 from ressources.functions import *
-from optima.doe import *
+from optimeo.doe import *
 from datetime import datetime
 
 help = read_markdown_file("pages/help-doe.md")

@@ -1,0 +1,11 @@
+README.md
+setup.py
+optimeo/__init__.py
+optimeo/analysis.py
+optimeo/bo.py
+optimeo/doe.py
+optimeo.egg-info/PKG-INFO
+optimeo.egg-info/SOURCES.txt
+optimeo.egg-info/dependency_links.txt
+optimeo.egg-info/requires.txt
+optimeo.egg-info/top_level.txt
