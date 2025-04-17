@@ -278,7 +278,7 @@ class DesignOfExperiments:
         if isinstance(value, dict):
             self._feature_constraints = [value]
         elif isinstance(value, list):
-            self._feature_constraints = value
+            self._feature_constraints = value if len(value) > 0 else None
         elif isinstance(value, str):
             self._feature_constraints = [value]
         else:
@@ -333,7 +333,6 @@ class DesignOfExperiments:
                     params.append({'name': par['name'],
                                    'type': 'choice',
                                    'values': par['values']})
-
             ax_client.create_experiment(
                 name="DOE",
                 parameters=params,

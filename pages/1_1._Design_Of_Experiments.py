@@ -96,6 +96,8 @@ if design_type in ['Sobol sequence', 'Space Filling Latin Hypercube',
         feature_constraints = feature_constraints.replace(">==", ">=")
         feature_constraints = feature_constraints.replace(">=", " >= ")
         feature_constraints = feature_constraints.split(",")
+    else:
+        feature_constraints = []
 elif design_type=='Fractional Factorial':
     reduction = st.sidebar.number_input("Reduction:", min_value=2, max_value=Npars+1, value=2)
 elif design_type=='Optimal':
