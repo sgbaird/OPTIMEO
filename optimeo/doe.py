@@ -11,7 +11,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 warnings.simplefilter(action='ignore', category=RuntimeError)
 import numpy as np
 import pandas as pd
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 from dexpy.optimal import build_optimal
 from dexpy.model import ModelOrder
 from dexpy.design import coded_to_actual
@@ -110,7 +110,8 @@ class DesignOfExperiments:
     def __init__(self, type: str,
                  parameters: List[Dict[str, Dict[str, Any]]],
                  Nexp: int = 4, order: int = 2, 
-                 randomize: bool = True, reduction: int = 2):
+                 randomize: bool = True, reduction: int = 2,
+                 feature_constraints: Optional[List[Dict[str, Any]]] = None):
         """
         Initialize the DesignOfExperiments class.
 
@@ -138,15 +139,16 @@ class DesignOfExperiments:
         reduction : int, optional
             Reduction factor for 'Fractional Factorial' designs. Default is 2.
         """
-        self._type = type
-        self._parameters = parameters
-        self._Nexp = Nexp
-        self._order = order
-        self._randomize = randomize
-        self._reduction = reduction
-        self._design = None
-        self._lows = {}
-        self._highs = {}
+        self.type = type
+        self.parameters = parameters
+        self.Nexp = Nexp
+        self.order = order
+        self.randomize = randomize
+        self.reduction = reduction
+        self.design = None
+        self.lows = {}
+        self.feature_constraints = feature_constraints
+        self.highs = {}
         self.create_design()
 
     def __repr__(self):
@@ -205,6 +207,26 @@ class DesignOfExperiments:
     def order(self) -> int:
         """Get the order of the model."""
         return self._order
+    
+    @property
+    def lows(self) -> Dict[str, float]:
+        """Get the lower bounds for the parameters."""
+        return self._lows
+    
+    @lows.setter
+    def lows(self, value: Dict[str, float]):
+        """Set the lower bounds for the parameters."""
+        self._lows = value
+    
+    @property
+    def highs(self) -> Dict[str, float]:
+        """Get the upper bounds for the parameters."""
+        return self._highs
+    
+    @highs.setter
+    def highs(self, value: Dict[str, float]):
+        """Set the upper bounds for the parameters."""
+        self._highs = value
 
     @order.setter
     def order(self, value: int):
@@ -236,6 +258,36 @@ class DesignOfExperiments:
         """Get the design DataFrame."""
         return self._design
 
+    @design.setter
+    def design(self, value: pd.DataFrame):
+        """Set the design DataFrame."""
+        self._design = value
+    
+    @property
+    def feature_constraints(self):
+        """
+        Get the feature constraints of the experiment for Sobol sequence.
+        """
+        return self._feature_constraints
+
+    @feature_constraints.setter
+    def feature_constraints(self, value):
+        """
+        Set the feature constraints of the experiment with validation for Sobol sequence.
+        """
+        if isinstance(value, dict):
+            self._feature_constraints = [value]
+        elif isinstance(value, list):
+            self._feature_constraints = value
+        elif isinstance(value, str):
+            self._feature_constraints = [value]
+        else:
+            self._feature_constraints = None
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
     def create_design(self):
         """
         Create the design of experiments based on the specified type and parameters.
@@ -247,18 +299,18 @@ class DesignOfExperiments:
                     label = le.fit_transform(par['values'])
                     par['values'] = label
                     par['encoder'] = le
-                    self._lows[par['name']] = np.min(par['values'])
-                    self._highs[par['name']] = np.max(par['values'])
+                    self.lows[par['name']] = np.min(par['values'])
+                    self.highs[par['name']] = np.max(par['values'])
                 else:
                     par['encoder'] = None
             else:
-                self._lows[par['name']] = np.min(par['values'])
-                self._highs[par['name']] = np.max(par['values'])
+                self.lows[par['name']] = np.min(par['values'])
+                self.highs[par['name']] = np.max(par['values'])
 
         pars = {par['name']: par['values'] for par in self.parameters}
 
         if self.type == 'Full Factorial':
-            self._design = build.full_fact(pars)
+            self.design = build.full_fact(pars)
         elif self.type == 'Sobol sequence':
             from ax.modelbridge.generation_strategy import GenerationStep, GenerationStrategy
             from ax.modelbridge.registry import Models
@@ -285,7 +337,8 @@ class DesignOfExperiments:
             ax_client.create_experiment(
                 name="DOE",
                 parameters=params,
-                objectives={"response": ObjectiveProperties(minimize=False)}
+                objectives={"response": ObjectiveProperties(minimize=False)},
+                parameter_constraints=self._feature_constraints
             )
             gs = GenerationStrategy(
                 steps=[GenerationStep(
@@ -306,8 +359,8 @@ class DesignOfExperiments:
             else:
                 ax_client.experiment.new_batch_trial(generator_run)
             trials = ax_client.get_trials_data_frame()
-            self._design = trials[trials['trial_status'] == 'CANDIDATE']
-            self._design = self._design.drop(columns=['trial_index',
+            self.design = trials[trials['trial_status'] == 'CANDIDATE']
+            self.design = self._design.drop(columns=['trial_index',
                                                       'trial_status',
                                                       'arm_name',
                                                       'generation_method',
@@ -321,55 +374,55 @@ class DesignOfExperiments:
                     self.parameters[par]['values'] = label
                     self.parameters[par]['encoder'] = le
             design = gsd([len(par['values']) for par in self.parameters], self.reduction)
-            self._design = pd.DataFrame(design, columns=[par['name'] for par in self.parameters])
+            self.design = pd.DataFrame(design, columns=[par['name'] for par in self.parameters])
         elif self.type == 'Definitive Screening Design':
             params = {par['name']: [np.min(par['values']), np.max(par['values'])] for par in self.parameters}
-            self._design = dsd.generate(factors_dict=params)
+            self.design = dsd.generate(factors_dict=params)
         elif self.type == 'Space Filling Latin Hypercube':
-            self._design = build.space_filling_lhs(pars, num_samples=self.Nexp)
+            self.design = build.space_filling_lhs(pars, num_samples=self.Nexp)
         elif self.type == 'Randomized Latin Hypercube':
-            self._design = build.lhs(pars, num_samples=self.Nexp)
+            self.design = build.lhs(pars, num_samples=self.Nexp)
         elif self.type == 'Optimal':
             reaction_design = build_optimal(
                 len(self.parameters),
                 order=ModelOrder(self.order),
                 run_count=self.Nexp)
             reaction_design.columns = [par['name'] for par in self.parameters]
-            self._design = coded_to_actual(reaction_design, self._lows, self._highs)
+            self.design = coded_to_actual(reaction_design, self._lows, self._highs)
         elif self.type == 'Plackett-Burman':
-            self._design = build.plackett_burman(pars)
+            self.design = build.plackett_burman(pars)
         elif self.type == 'Box-Behnken':
             if len(self.parameters) < 3 or any([len(par['values']) < 3 for par in self.parameters]):
-                self._design = pd.DataFrame({})
+                self.design = pd.DataFrame({})
                 raise Warning("Box-Behnken design is not possible with less than 3 parameters and with less than 3 levels for any parameter.")
             else:
-                self._design = build.box_behnken(d=pars, center=1)
+                self.design = build.box_behnken(d=pars, center=1)
         else:
             raise Warning("Unknown design type. Must be one of: 'Full Factorial', 'Sobol sequence', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'.")
 
         for par in self.parameters:
             if par['type'] == "Categorical" and self.type != 'Sobol sequence':
                 vals = self._design[par['name']].to_numpy()
-                self._design[par['name']] = par['encoder'].inverse_transform([int(v) for v in vals])
+                self.design[par['name']] = par['encoder'].inverse_transform([int(v) for v in vals])
 
         # randomize the run order
-        self._design['run_order'] = np.arange(len(self._design)) + 1
+        self.design['run_order'] = np.arange(len(self._design)) + 1
         if self.randomize:
             ord = self._design['run_order'].to_numpy()
-            self._design['run_order'] = np.random.permutation(ord)
+            self.design['run_order'] = np.random.permutation(ord)
         cols = self._design.columns.tolist()
         cols = cols[-1:] + cols[:-1]
-        self._design = self._design[cols]
+        self.design = self._design[cols]
         # apply the column types
         for col in self._design.columns:
             for par in self.parameters:
                 if col == par['name']:
                     if par['type'].lower() == "float":
-                        self._design[col] = self._design[col].astype(float)
+                        self.design[col] = self._design[col].astype(float)
                     elif par['type'].lower() in ["int", "integer"]:
-                        self._design[col] = self._design[col].astype(int)
+                        self.design[col] = self._design[col].astype(int)
                     else:
-                        self._design[col] = self._design[col].astype(str)
+                        self.design[col] = self._design[col].astype(str)
         return self._design
 
     def plot(self):

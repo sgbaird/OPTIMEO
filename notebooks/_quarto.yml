@@ -1,0 +1,19 @@
+
+format:
+  html:
+    theme     : cosmo
+    page-layout: full
+    linkcolor : "#3d54cb"
+    code-link : true
+    code-tools: true
+    code-copy : true
+    css: style.css
+    code-block-border-left: true
+    code-block-bg: true
+
+knitr:
+  opts_chunk:
+    comment: "#>"
+    class-source : codeoutput
+    width: 80
+

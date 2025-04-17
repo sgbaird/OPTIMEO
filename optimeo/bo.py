@@ -594,7 +594,6 @@ Input data:
                 steps=[GenerationStep(
                             model=Models.SOBOL,
                             num_trials=-1,  # How many trials should be produced from this generation step
-                            
                             should_deduplicate=True,  # Deduplicate the trials
                             # model_kwargs={"seed": 165478},  # Any kwargs you want passed into the model
                             model_gen_kwargs={},  # Any kwargs you want passed to `modelbridge.gen`
@@ -871,7 +870,7 @@ Input data:
         fig.update_layout(
             plot_bgcolor="white",  # White background
             legend=dict(bgcolor='rgba(0,0,0,0)'),
-            margin=dict(l=10, r=10, t=50, b=50),
+            margin=dict(l=50, r=10, t=50, b=50),
             xaxis=dict(
                 showgrid=True,  # Enable grid
                 gridcolor="lightgray",  # Light gray grid lines
@@ -924,7 +923,7 @@ Input data:
         fig.update_layout(
             plot_bgcolor="white",  # White background
             legend=dict(bgcolor='rgba(0,0,0,0)'),
-            margin=dict(l=10, r=10, t=50, b=50),
+            margin=dict(l=50, r=10, t=50, b=50),
             xaxis=dict(
                 showgrid=True,  # Enable grid
                 gridcolor="lightgray",  # Light gray grid lines

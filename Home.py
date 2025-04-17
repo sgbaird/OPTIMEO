@@ -55,7 +55,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 
 #### For Design of Experiment
 
-A more detailed example is given in [the notebook](notebooks/doe.ipynb)
+A more detailed example is given in [the notebook](notebooks/doe.html)
 
 ```python
 from optimeo.doe import * 
@@ -74,7 +74,7 @@ doe
 
 #### For Bayesian Optimization
 
-A more detailed example is given in [the notebook](notebooks/bo.ipynb)
+A more detailed example is given in [the notebook](notebooks/bo.html)
 
 ```python
 from optimeo.bo import * 
@@ -95,7 +95,7 @@ bo.suggest_next_trials()
 
 #### For Data Analysis
 
-A more detailed example is given in [the notebook](notebooks/MLanalysis.ipynb)
+A more detailed example is given in [the notebook](notebooks/MLanalysis.html)
 
 ```python
 from optimeo.analysis import * 
@@ -189,6 +189,7 @@ This work was supported by the French National Research Agency (N° ANR-xxxxxx).
 Also, this work was made possible thanks to the following open-source projects:
 
 - [ax](https://ax.dev/)
+- [BoTorch](https://botorch.org/)
 - [pyDOE3](https://github.com/relf/pyDOE3)
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)

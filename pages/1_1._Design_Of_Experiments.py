@@ -23,7 +23,11 @@ st.set_page_config(page_title="Design Of Experiment",
 style = read_markdown_file("ressources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
-defaultParNames = ["Temperature", "Concentration A", "Concentration B", "Reaction time", "Flux", "Parameter 6", "Parameter 7", "Parameter 8", "Parameter 9", "Parameter 10", "Parameter 11", "Parameter 12", "Parameter 13", "Parameter 14", "Parameter 15", "Parameter 16", "Parameter 17", "Parameter 18", "Parameter 19", "Parameter 20"]
+defaultParNames = ["Temperature", "ConcentrationA", "ConcentrationB", "Reaction_time",
+                   "Flux", "Parameter_6", "Parameter_7", "Parameter_8", "Parameter_9", 
+                   "Parameter_10", "Parameter_11", "Parameter_12", "Parameter_13", 
+                   "Parameter_14", "Parameter_15", "Parameter_16", "Parameter_17", 
+                   "Parameter_18", "Parameter_19", "Parameter_20"]
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -34,7 +38,9 @@ st.write("""
 """)
 
 design_type = st.sidebar.selectbox("Design type",
-        ['Sobol sequence','Full Factorial', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
+        ['Sobol sequence','Full Factorial', 'Fractional Factorial', 
+         'Definitive Screening Design', 'Space Filling Latin Hypercube', 
+         'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
 
 cols = st.sidebar.columns(2)
 cols[0].write("N parameters")
@@ -45,6 +51,7 @@ randomize = cols[1].checkbox("Randomize", value=True, label_visibility="collapse
 reduction = 2
 order=2
 Nexp = 4
+feature_constraints = []
 # # # # # # # # # # # # # # # # 
 tab1, tab2, tab3 = st.tabs(["How to choose the proper design?", "Parameters Ranges", "Experimental Design"])
 
@@ -74,6 +81,21 @@ if design_type in ['Sobol sequence', 'Space Filling Latin Hypercube',
                    'Randomized Latin Hypercube', 'Optimal']:
     Nexp = st.sidebar.number_input("Number of experiments:",
                                     min_value=1, max_value=1000, value = 1)
+    feature_constraints = st.sidebar.text_input("""Add **linear** constraints on the features (if any). Use a comma to separate multiple constraints.""",
+                help="""The constraints should be in the form of inequalities such as:
+
+- `x1 >= 0`
+- `x2 <= 10, x4 >= -0.5`
+- `x1 + 3*x2 <= 5`""")
+    if len(feature_constraints)>0:
+        feature_constraints = feature_constraints.replace("+", " + ")
+        feature_constraints = feature_constraints.replace("<", "<=")
+        feature_constraints = feature_constraints.replace(">", ">=")
+        feature_constraints = feature_constraints.replace("<==", "<=")
+        feature_constraints = feature_constraints.replace("<=", " <= ")
+        feature_constraints = feature_constraints.replace(">==", ">=")
+        feature_constraints = feature_constraints.replace(">=", " >= ")
+        feature_constraints = feature_constraints.split(",")
 elif design_type=='Fractional Factorial':
     reduction = st.sidebar.number_input("Reduction:", min_value=2, max_value=Npars+1, value=2)
 elif design_type=='Optimal':
@@ -94,7 +116,8 @@ doe = DesignOfExperiments(
     Nexp=Nexp,
     reduction=reduction,
     order=order,
-    randomize=randomize
+    randomize=randomize,
+    feature_constraints=feature_constraints
 )
 design = doe.design
 

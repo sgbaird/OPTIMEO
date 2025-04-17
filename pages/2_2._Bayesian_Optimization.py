@@ -195,7 +195,7 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 # feature_constraints += [f'{par} <= {fixparval[i]}']
         
         # add a text input to add constraints
-        feature_constraints = st.sidebar.text_input("""Add constraints on the features (if any). Use a comma to separate multiple constraints.""",
+        feature_constraints = st.sidebar.text_input("""Add **linear** constraints on the features (if any). Use a comma to separate multiple constraints.""",
                 help="""The constraints should be in the form of inequalities such as:
 
 - `x1 >= 0`
