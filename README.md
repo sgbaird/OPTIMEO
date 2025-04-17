@@ -33,7 +33,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 
 #### For Design of Experiment
 
-A more detailed example is given in [the notebook](notebooks/doe.html)
+A more detailed example is given in [the notebook](notebooks/doe.ipynb)
 
 ```python
 from optimeo.doe import * 
@@ -52,7 +52,7 @@ doe
 
 #### For Bayesian Optimization
 
-A more detailed example is given in [the notebook](notebooks/bo.html)
+A more detailed example is given in [the notebook](notebooks/bo.ipynb)
 
 ```python
 from optimeo.bo import * 
@@ -73,7 +73,7 @@ bo.suggest_next_trials()
 
 #### For Data Analysis
 
-A more detailed example is given in [the notebook](notebooks/MLanalysis.html)
+A more detailed example is given in [the notebook](notebooks/MLanalysis.ipynb)
 
 ```python
 from optimeo.analysis import * 
