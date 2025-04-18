@@ -67,17 +67,84 @@ tabs = st.tabs(["Data Loading", "Bayesian Optimization", 'Predictions'])
 
 with tabs[0]:
     colos = st.columns([2,3])
-    dataf = colos[0].file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods and odt).
+    dataf = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).
 
 For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
                 help="The data file should contain the factors and the response variable.",
                 on_change=model_changed)
     if dataf is None:
-        container = colos[1].container(border=True)
-        container.markdown(
-        "⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can specify up to four responses. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header."
+        with st.expander("**How to format your data?**"):
+            st.markdown(
+                """The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can only specify one response. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header.
+
+For Excel-like files, the first sheet will be used, and data should start in the A1 cell, and no unnecessary rows or columns should be present. 
+"""
         )
-        container.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+            cols = st.columns([1,2,1])
+            cols[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+        with st.expander("**Bayesian Optimization in simple terms**"):
+            st.markdown("""**Bayesian optimization** is a strategy used to find the best settings or parameters for a system or model, especially when evaluating each setting is expensive or time-consuming. Here's a simple explanation:
+
+- **Imagine a Landscape:** Think of the problem as a hilly landscape where the height of the hills represents how well the system performs with different settings. Your goal is to find the highest peak (the best performance).
+
+- **Initial Guesses:** You start by making a few initial guesses about where the highest peak might be. These guesses are based on some prior knowledge or random sampling.
+
+- **Build a Model:** Based on these guesses, you build a simple model (often called a surrogate model) that approximates the landscape. This model helps predict what the landscape looks like, even in areas you haven't explored yet.
+
+- **Update Beliefs:** As you evaluate more settings, you update your model. This updating process is where the "Bayesian" part comes in—you're continually refining your beliefs about the landscape based on new information. Bayes' theorem is a way to update the probability of a hypothesis as more evidence or information becomes available. It's based on the idea that the likelihood of an event can change when you consider new data, combining your initial belief (prior probability) with new evidence (likelihood) to give you a revised belief (posterior probability).
+
+- **Choose the Next Point:** The key idea is to choose the next setting to evaluate by balancing two goals:
+
+  - **Exploitation:** Choosing settings where your model predicts the performance will be high.
+  - **Exploration:** Choosing settings where the model is uncertain, to gather more information and improve the model.
+
+- **Iterate:** You repeat the process of updating the model and choosing new settings until you find the highest peak or run out of resources (like time or computational power).
+
+In simple terms, Bayesian optimization is like a smart search strategy that helps you efficiently find the best settings for a complex system by learning from each attempt and making educated guesses about where to look next.
+""")
+        with st.expander("""**But the app tells me to go measure new points with a predicted outcome that is worse than what I already have in my database!**
+
+**This does not work as I thought...**"""):
+                st.markdown("""Let's see how it works in practice with a simple example with only one continuous feature – it is the same procedure with more features, it's just harder to visualize in more than 2 or 3 dimensions.
+
+At the core of the Bayesian Optimization is the Gaussian Process (GP) regression and the acquisition function. Here, we use an acquisition function called Expected Improvement (EI) (in fact, its log value).
+
+The GP regression is a non-parametric regression method that uses the data to build a probabilistic model of the response. The GP regression is used to predict the response at new points, and it also provides an uncertainty estimate (the standard deviation) for each prediction. The EI acquisition function is a function computing the expected improvement of the response at a new point compared to the best response observed so far. It is used to decide where to sample next by maximizing it.
+<details><summary><b>More about the EI function</b></summary>
+
+Let's denote:
+- $f(x)$ as the objective function we want to maximize.
+- $x$ as a point in the search space.
+- $f^*$ as the current best observed value of the objective function.
+- $\\mu(x)$ and $\\sigma(x)$ as the predicted mean and standard deviation of the objective function at point $x$, respectively, based on a Gaussian process model.
+- $\\Phi$ as the cumulative distribution function (CDF) of the standard normal distribution.
+- $\\phi$ as the probability density function (PDF) of the standard normal distribution.
+
+The expected improvement (EI) at a point $x$ is defined as:
+
+$$ \\text{EI}(x) = \\mathbb{E}[\\max(f(x) - f^*, 0)] $$
+
+This can be expressed in terms of the Gaussian process model as:
+
+$$ \\text{EI}(x) = (\\mu(x) - f^*) \\Phi(Z) + \\sigma(x) \\phi(Z) $$
+
+where
+
+$$ Z = \\frac{\\mu(x) - f^*}{\\sigma(x)} $$
+
+##### Interpretation
+
+- **$\\mu(x) - f^*$**: This term represents the expected improvement in the mean prediction over the current best observed value.
+- **$\\Phi(Z)$**: This term represents the probability that the predicted value at $x$ is greater than the current best observed value.
+- **$\\sigma(x) \\phi(Z)$**: This term accounts for the uncertainty in the prediction, encouraging exploration in regions where the model is uncertain.
+
+The expected improvement balances exploration (trying new points with high uncertainty) and exploitation (focusing on points with high predicted mean values). It is widely used as an acquisition function in Bayesian optimization to decide where to sample next.
+
+</details>
+<br>
+""", unsafe_allow_html=True)
+                figi = st.slider('Bayesian Optimization step', 0, 15, 0,1)
+                display_figure(f'ressources/figure_{figi}.html')
     if dataf is not None:
         if Path(dataf.name).suffix == '.csv':
             data = pd.read_csv(dataf)
@@ -85,15 +152,17 @@ For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'
             data = pd.read_excel(dataf)
         data = clean_names(data, remove_special=True, case_type='preserve')
         left, right = st.columns([3,2])
+        resp = right.empty()
+        fac = left.empty()
         cols = data.columns.to_numpy()
-        colos[1].dataframe(data, hide_index=False)
+        st.dataframe(data, hide_index=False)
         mincol = 1 if 'run_order' in cols else 0
-        factors = colos[0].multiselect("Select the **factor(s)** column(s):", 
+        factors = fac.multiselect("Select the **factor(s)** column(s):", 
                 data.columns, default=cols[mincol:-1],
                 on_change=model_changed)
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        responses = colos[0].multiselect("Select the **response(s)** column(s):", 
+        responses = resp.multiselect("Select the **response(s)** column(s):", 
                 available, max_selections=4, default=available[-1],
                 on_change=model_changed)
         # add option to change type of columns
@@ -151,19 +220,24 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
 
 with tabs[1]:
     if dataf is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
-        cols = st.sidebar.columns([1,1])
+        left,right = st.columns([3,1])
+        container = left.container(border=True)
+        container.write("###### Model options")
+        containerplot = right.container(border=True)
+        cols = container.columns(4)
         maximize = {}
         for i in range(len(responses)):
-            temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", ["Maximize", "Minimize"], 
-                                 on_change=model_changed)
+            temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", 
+                                   horizontal=True, options=["Maximize", "Minimize"],
+                                   on_change=model_changed)
             maximize[responses[i]] = True if temp == "Maximize" else False
-        Nexp = st.sidebar.number_input("Number of experiments", 
+        Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.", 
                 on_change=model_changed)
-        samplerchoice = st.sidebar.selectbox("Select the generator", ["Sobol pseudo-random", "Bayesian Optimization"], help="""### Select the generator to use for the optimization.  
+        samplerchoice = cols[3].selectbox("Select the generator", ["Sobol pseudo-random", "Bayesian Optimization"], help="""### Select the generator to use for the optimization.  
 - **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
 - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
 
@@ -172,19 +246,20 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         sampler_list = {"Sobol pseudo-random": 'sobol',
                         "Bayesian Optimization": 'bo'}
         # fix a parameter value
-        fixed_features_names = st.sidebar.multiselect("""Select the fixed parameters (if any)""", 
-                factors, help="Select one or more features to fix during generation.", on_change=model_changed)
+        cols = container.columns(4)
+        fixed_features_names = cols[0].multiselect("""Select the fixed parameters (if any)""", 
+                factors, help="Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature, for example.", on_change=model_changed)
         fixed_features_values = [None]*len(fixed_features_names)
         if len(fixed_features_names) > 0:
             for i,feature in enumerate(fixed_features_names):
                 if factor_types[feature] == 'object':
                     cases = data[feature].unique()
-                    fixed_features_values[i] = st.sidebar.selectbox(f"Value of **{feature}**", 
+                    fixed_features_values[i] = cols[(i%3)+1].selectbox(f"Value of **{feature}**:", 
                                                                     cases, 
                                                                     key=f"fixpar{i}", 
                                                                     on_change=model_changed)
                 else:
-                    fixed_features_values[i] = st.sidebar.number_input(f"Value of **{feature}**", 
+                    fixed_features_values[i] = cols[(i%3)+1].number_input(f"Value of **{feature}**:", 
                                                                         value=np.mean(data[feature]), key=f"fixpar{i}", 
                                                                         on_change=model_changed)
         # regroup the fixed features in a dict
@@ -195,12 +270,14 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 # feature_constraints += [f'{par} <= {fixparval[i]}']
         
         # add a text input to add constraints
-        feature_constraints = st.sidebar.text_input("""Add **linear** constraints on the features (if any). Use a comma to separate multiple constraints.""",
+        feature_constraints = container.text_input("""Add **linear** constraints on the parameters (if any). Use a comma to separate multiple constraints.""",
                 help="""The constraints should be in the form of inequalities such as:
 
 - `x1 >= 0`
 - `x2 <= 10, x4 >= -0.5`
-- `x1 + 3*x2 <= 5`""", on_change=model_changed)
+- `x1 + 3*x2 <= 5`
+
+If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should first transform your columns before loading the data file.""", on_change=model_changed)
         if len(feature_constraints)>0:
             feature_constraints = feature_constraints.replace("+", " + ")
             feature_constraints = feature_constraints.replace("<", "<=")
@@ -231,17 +308,16 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
 #             outcome_constraints = []
         
         # Perform Bayesian optimization
-        colos = st.columns([2,4])
+        colos = container.columns([6,1])
         if samplerchoice == "Bayesian Optimization":
             colos[0].success("**Bayesian optimization** is a probabilistic model. The results may vary slightly each time you run it.", icon=":material/info:")
         else:
             colos[0].warning("""You are using the **Sobol pseudo-random generator**. The results will vary each time you run it.
                             
 **You are _not_ performing an optimization**, but an uniform sampling of the parameter space. This is suitable for the first few iterations of the optimization (exploration), then switch to Bayesian optimization.""", icon="⚠️")
-        buttons = colos[0].columns([1,1])
-        modelbutton = buttons[0].empty()
-        plotbutton = buttons[1].empty()
-        plotparetobutton = buttons[1].empty()
+        modelbutton = colos[1].empty()
+        plotbutton = containerplot.empty()
+        plotparetobutton = containerplot.empty()
         # Check constraints
         if len(feature_constraints) > 0:
             constraint_results = check_constraints(data, feature_constraints)
@@ -281,32 +357,33 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         if (st.session_state['bo'] is not None and 
             st.session_state['next'] is not None and 
             st.session_state['best'] is not None):
-            colos[1].write("**Next experiments to perform:**")
-            colos[1].dataframe(st.session_state['next'], hide_index=True)
-            colos[1].write("**Best parameters found:**")
-            colos[1].dataframe(st.session_state['best'], hide_index=True)
+            cols= container.columns(2)
+            cols[0].write("**Next experiments to perform:**")
+            cols[0].dataframe(st.session_state['next'], hide_index=True)
+            cols[1].write("**Best parameters found:**")
+            cols[1].dataframe(st.session_state['best'], hide_index=True)
         figmod = []
         figopt = None
         # add a button to launch pareto frontiers plotting
-        st.sidebar.write("---")
-        st.sidebar.write("#### Plot options: slices")
+        containerplot.write("###### Plot options")
+        cols= containerplot.columns(2)
         parslice = {}
-        for f in factors:
+        for i,f in enumerate(factors):
             if features[f]['type'] == 'float':
-                temp = st.sidebar.number_input(f"Slice for **{f}**", key=f"parslice{f}", 
+                temp = cols[i%2].number_input(f"Slice for **{f}**", key=f"parslice{f}", 
                                                on_change=plot_changed,
                                                value=None, min_value=features[f]['range'][0],
                                                max_value=features[f]['range'][1])
                 if temp is not None:
                     parslice[f] = temp
             if features[f]['type'] == 'text':
-                temp = st.sidebar.multiselect(f"Slice for **{f}**", max_selections=1,
+                temp = cols[i%2].multiselect(f"Slice for **{f}**", max_selections=1,
                                               on_change=plot_changed,
                                               options=features[f]['range'], key=f"parslice{f}")
                 if len(temp) > 0:
                     parslice[f] = temp[0]
             if features[f]['type'] == 'int':
-                temp = st.sidebar.number_input(f"Slice for **{f}**", key=f"parslice{f}", 
+                temp = cols[i%2].number_input(f"Slice for **{f}**", key=f"parslice{f}", 
                                                on_change=plot_changed,
                                                value=None, 
                                                min_value=int(features[f]['range'][0]),
@@ -314,8 +391,11 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 if temp is not None:
                     parslice[f] = temp
 
-        count = len([name for name, info in features.items() if info['type']=='float' or info['type']=='int'])-len(parslice)
-        if st.session_state['bo'] is not None and (plotbutton.button("Plot model / Update plots", type="primary",
+        # find which parameters are not in parslice and are not in fixed_features
+        not_fixed = [f for f in factors if f not in parslice and f not in fixed_features_names]
+        # count how many paramteres in not_fixed are float or int
+        count = len([name for name in not_fixed if features[name]['type']=='float' or features[name]['type']=='int'])
+        if st.session_state['bo'] is not None and (containerplot.button("Plot model / Update plots", type="primary",
                              on_click=plot_updated,
                              disabled=st.session_state['plot_up_to_date']) or
             st.session_state['plot_up_to_date'] == True):
@@ -331,14 +411,15 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 for i in range(len(responses)):
                     st.plotly_chart(figmod[i], key=f"figmod{i}")
             elif figmod is not None and count==0:
-                st.write("Can't plot a model with no features with type `float`.")
+                st.warning("Can't plot a model with no free features or with no numerical features.", 
+                           icon="⚠️")
             if figopt is not None:
                 st.plotly_chart(figopt, key=f"figopt")
         if (st.session_state['bo'] is not None and 
             len(responses) >1 and
             st.session_state['plot_up_to_date'] == True and
             st.session_state['bo'].model is not None and
-            plotparetobutton.button("Plot Pareto frontiers", type="primary",
+            containerplot.button("Plot Pareto frontiers", type="primary",
                                     disabled=st.session_state['plot_pareto_up_to_date'],
                                     on_click=plot_pareto_updated)):
             figpareto = st.session_state['bo'].plot_pareto_frontier()
@@ -348,32 +429,35 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
 
 with tabs[2]:
     if dataf is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
-        st.write("#### Select the parameters for prediction of the response")
-        cols = st.columns([1,1])
+        st.write(f"#### Select the parameters for prediction of {', '.join(responses)}")
+        cols = st.columns(4)
         # add a button to launch predictions
         parslice = {}
-        for f in factors:
+        for i,f in enumerate(factors):
             if features[f]['type'] == 'float':
-                parslice[f] = cols[0].number_input(f"Value of **{f}**", 
+                parslice[f] = cols[i%4].number_input(f"**{f}**", 
                                                     value='min', 
                                                     min_value=float(features[f]['range'][0]),
                                                     max_value=float(features[f]['range'][1]))
             elif features[f]['type'] == 'text':
-                parslice[f] = str(cols[0].selectbox(f"Value of **{f}**",
+                parslice[f] = str(cols[i%4].selectbox(f"**{f}**",
                                         options=features[f]['range']))
             elif features[f]['type'] == 'int':
-                parslice[f] = cols[0].number_input(f"Value of **{f}**", 
+                parslice[f] = cols[i%4].number_input(f"**{f}**", 
                                                       value=int(np.mean(features[f]['range'])), 
                                                       min_value=int(features[f]['range'][0]),
                                                       max_value=int(features[f]['range'][1]))
+        if st.session_state['bo'] is None:
+            st.warning("""The model is not yet computed. Please compute the model in the **Bayesian Optimization** tab.""")
         if len(parslice) > 0 and st.session_state['bo'] is not None:
             pred = st.session_state['bo'].predict([parslice])
             pred = pd.DataFrame(pred)
             # append "Predicted_" to the response names
             pred.columns = [f"Predicted_{col}" for col in pred.columns]
-            cols[0].dataframe(pred, hide_index=True)
+            cols = st.columns([1,2,1])
+            cols[1].dataframe(pred, hide_index=True)
             # actual = {}
             # cols[1].write("Update model with actual value of the response for these parameters")
             # for i in range(len(responses)):

@@ -267,9 +267,10 @@ class BOExperiment:
             The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence. Default is 'bo'.
         """
         self.first_initialization_done = False
-        self.fixed_features      = fixed_features
         self.ranges              = ranges
         self.features            = features
+        self.names               = list(self._features.keys())
+        self.fixed_features      = fixed_features
         self.outcomes            = outcomes
         self.N                   = N
         self.maximize            = maximize
@@ -300,7 +301,6 @@ class BOExperiment:
         if not isinstance(value, dict):
             raise ValueError("features must be a dictionary")
         self._features = value
-        self.names = list(value.keys())
         for name in self._features.keys():
             if self.ranges and name in self.ranges.keys():
                 self._features[name]['range'] = self.ranges[name]
@@ -315,6 +315,22 @@ class BOExperiment:
                                                      float(np.max(self._features[name]['data']))]
         if self.first_initialization_done:
             self.initialize_ax_client()
+    
+    @property
+    def names(self):
+        """
+        Get the names of the features.
+        """
+        return self._names
+    
+    @names.setter
+    def names(self, value):
+        """
+        Set the names of the features.
+        """
+        if not isinstance(value, list):
+            raise ValueError("names must be a list")
+        self._names = value
 
     @property
     def outcomes(self):
@@ -778,7 +794,8 @@ Input data:
                 trace.marker.size = 10
                 trace.marker.line.width = 2
                 trace.marker.line.color = 'black'
-                trace.text = [t.replace('Arm', '<b>Sample').replace("_0","</b>") for t in trace.text]
+                if trace.text is not None:
+                    trace.text = [t.replace('Arm', '<b>Sample').replace("_0","</b>") for t in trace.text]
             if trace.legendgroup == cand_name:  # Modify only the "Candidate" markers
                 trace.marker.color = "red"  # Change marker color
                 trace.name = cand_name
@@ -788,7 +805,8 @@ Input data:
                 # Add hover info
                 trace.hoverinfo = "text"  # Enable custom text for hover
                 trace.hoverlabel = dict(bgcolor="#f8d5cd", font_color='black')
-                trace.text = [t.replace("<i>","").replace("</i>","") for t in trace.text]
+                if trace.text is not None:
+                    trace.text = [t.replace("<i>","").replace("</i>","") for t in trace.text]
                 trace.text = [
                     f"<b>Candidate {i+1}</b><br>{'<br>'.join([f'{col}: {val}' for col, val in trials.iloc[i].items()])}"
                     for t in trace.text

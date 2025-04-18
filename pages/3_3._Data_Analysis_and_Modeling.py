@@ -51,18 +51,54 @@ st.write("""
 tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 'Machine Learning Model'])
 
 with tabs[0]: # data loading
-    datafile = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods and odt).""", 
+    datafile = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).""", 
                 type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
                 help="The data file should contain the factors and the response variable.")
     if datafile is None:
-        st.markdown(
-        """⚠️ The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can only specify one response. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header.
+        cols = st.columns([2,3])
+        cols[1].container(border=True).markdown(
+            """##### How to choose the ML model?
+
+In the **Visual Assessment** tab, you can take a look at your data and make a pairplot out of it. This can help you in model selection:
+
+- **Linear Relationships:** If the pairplot shows linear relationships between features and the target variable, linear models like **LinearRegression**, **RidgeCV**, or **ElasticNetCV** might be appropriate.
+
+- **Non-linear Relationships:** If you observe non-linear patterns, models like **RandomForest**, **GradientBoosting**, or **GaussianProcess** could be more suitable, as they can capture complex relationships.
+
+- **Feature Correlations:** A pairplot can also reveal correlations between features. High correlations might suggest the need for regularization techniques (e.g., **RidgeCV** or **ElasticNetCV**) to handle multicollinearity.
+
+- **Outliers and Distribution:** Visualizing the data can help identify outliers or unusual distributions that might affect model performance. This insight can guide preprocessing steps or model choice.
+""")
+        recols = cols[1].columns(2)
+        with recols[0].expander("**ElasticNetCV**"):
+            st.write('''This model combines the properties of both Lasso and Ridge regression. It is useful when you have many correlated features and want to perform feature selection. It automatically tunes the regularization parameters using cross-validation.
+            ''')
+        with recols[0].expander("**RidgeCV**"):
+            st.write('''This is a linear regression model with L2 regularization. It is effective when dealing with multicollinearity (highly correlated features). RidgeCV automatically tunes the regularization strength using cross-validation, making it a good choice for improving model generalization.
+            ''')
+        with recols[0].expander("**LinearRegression**"):
+            st.write('''This is a simple and interpretable model that fits a linear relationship between the input features and the target variable. It is suitable for datasets where the relationship between features and the target is approximately linear.
+            ''')
+        with recols[1].expander("**RandomForest**"):
+            st.write('''This is an ensemble learning method that combines multiple decision trees to improve predictive performance. It is robust to overfitting and can handle both classification and regression tasks. RandomForest is a good choice when you have a large dataset with complex interactions.
+            ''')
+        with recols[1].expander("**GaussianProcess**"):
+            st.write('''This model is useful for small to medium-sized datasets and can capture complex relationships. It provides uncertainty estimates along with predictions, making it suitable for tasks where understanding prediction confidence is important.
+            ''')
+        with recols[1].expander("**GradientBoosting**"):
+            st.write('''This is an ensemble technique that builds models sequentially, each correcting the errors of the previous one. It is powerful for both regression and classification tasks and often achieves high performance, but it can be computationally intensive.
+            ''')
+        cont = cols[0].container(border=True)
+        cont.markdown(
+        """##### How to format your data?
+        
+The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can only specify one response. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header.
 
 For Excel-like files, the first sheet will be used, and data should start in the A1 cell, and no unnecessary rows or columns should be present. 
-        """
+
+"""
         )
-        cols=st.columns([1,4,1])
-        cols[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+        cont.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if datafile is not None:
         left,right=st.columns([1,1])
         if Path(datafile.name).suffix == '.csv':
@@ -88,7 +124,7 @@ For Excel-like files, the first sheet will be used, and data should start in the
 
 with tabs[1]: # visual assessment
     if datafile is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
 
         # Set up the layout for Streamlit
@@ -169,7 +205,7 @@ with tabs[1]: # visual assessment
 
 with tabs[2]: # simple model
     if datafile is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         cols = st.columns([1,1,4])
         order = cols[0].number_input("Interactions order:", 
@@ -221,7 +257,7 @@ To remove the intercept, add `-1` at the end of the equation.""")
 
 with tabs[3]: # machine learning model
     if datafile is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the "Data Loading" tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
         cols = st.columns(3)

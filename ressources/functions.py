@@ -25,6 +25,7 @@ from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.pipeline import make_pipeline
+import streamlit.components.v1 as components
 
 about_items={
         'Get Help': 'mailto:colin.bousige@cnrs.fr',
@@ -70,6 +71,10 @@ def write_poly(pp):
     out = out.replace('-', '–')
     return(out)
 
+def display_figure(file_path):
+    with open(file_path, 'r') as file:
+        html_content = file.read()
+    components.html(html_content, height=800)
 
 # @st.cache_data
 def encode_data(data, factors, response, factor_ranges):
