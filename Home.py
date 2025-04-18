@@ -85,7 +85,6 @@ bo = BOExperiment(
     outcomes=outcomes,
     N = 2, # number of new points to generate
     maximize=True, # we want to maximize the response
-    outcome_constraints=None,
     fixed_features=None, 
     feature_constraints=None, 
     optim = 'bo'
