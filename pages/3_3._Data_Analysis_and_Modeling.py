@@ -30,7 +30,9 @@ if not 'modlin' in st.session_state:
     st.session_state.modlin = None
 if not 'figlin' in st.session_state:
     st.session_state.figlin = None
-
+if "model_up_to_date" not in st.session_state:
+    st.session_state['model_up_to_date'] = False
+    
 def data_changed():
     st.session_state.analysis = None
     st.session_state.figml = None
@@ -40,6 +42,12 @@ def data_changed():
 
 def recompute_ML_fig():
     st.session_state.figml = None
+
+def model_updated():
+    st.session_state.model_up_to_date = True
+
+def model_changed():
+    st.session_state.model_up_to_date = False
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 # Definition of User Interface
@@ -55,40 +63,7 @@ with tabs[0]: # data loading
                 type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
                 help="The data file should contain the factors and the response variable.")
     if datafile is None:
-        cols = st.columns([2,3])
-        cols[1].container(border=True).markdown(
-            """##### How to choose the ML model?
-
-In the **Visual Assessment** tab, you can take a look at your data and make a pairplot out of it. This can help you in model selection:
-
-- **Linear Relationships:** If the pairplot shows linear relationships between features and the target variable, linear models like **LinearRegression**, **RidgeCV**, or **ElasticNetCV** might be appropriate.
-
-- **Non-linear Relationships:** If you observe non-linear patterns, models like **RandomForest**, **GradientBoosting**, or **GaussianProcess** could be more suitable, as they can capture complex relationships.
-
-- **Feature Correlations:** A pairplot can also reveal correlations between features. High correlations might suggest the need for regularization techniques (e.g., **RidgeCV** or **ElasticNetCV**) to handle multicollinearity.
-
-- **Outliers and Distribution:** Visualizing the data can help identify outliers or unusual distributions that might affect model performance. This insight can guide preprocessing steps or model choice.
-""")
-        recols = cols[1].columns(2)
-        with recols[0].expander("**ElasticNetCV**"):
-            st.write('''This model combines the properties of both Lasso and Ridge regression. It is useful when you have many correlated features and want to perform feature selection. It automatically tunes the regularization parameters using cross-validation.
-            ''')
-        with recols[0].expander("**RidgeCV**"):
-            st.write('''This is a linear regression model with L2 regularization. It is effective when dealing with multicollinearity (highly correlated features). RidgeCV automatically tunes the regularization strength using cross-validation, making it a good choice for improving model generalization.
-            ''')
-        with recols[0].expander("**LinearRegression**"):
-            st.write('''This is a simple and interpretable model that fits a linear relationship between the input features and the target variable. It is suitable for datasets where the relationship between features and the target is approximately linear.
-            ''')
-        with recols[1].expander("**RandomForest**"):
-            st.write('''This is an ensemble learning method that combines multiple decision trees to improve predictive performance. It is robust to overfitting and can handle both classification and regression tasks. RandomForest is a good choice when you have a large dataset with complex interactions.
-            ''')
-        with recols[1].expander("**GaussianProcess**"):
-            st.write('''This model is useful for small to medium-sized datasets and can capture complex relationships. It provides uncertainty estimates along with predictions, making it suitable for tasks where understanding prediction confidence is important.
-            ''')
-        with recols[1].expander("**GradientBoosting**"):
-            st.write('''This is an ensemble technique that builds models sequentially, each correcting the errors of the previous one. It is powerful for both regression and classification tasks and often achieves high performance, but it can be computationally intensive.
-            ''')
-        cont = cols[0].container(border=True)
+        cont = st.container(border=True)
         cont.markdown(
         """##### How to format your data?
         
@@ -98,7 +73,8 @@ For Excel-like files, the first sheet will be used, and data should start in the
 
 """
         )
-        cont.image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+        conti = cont.columns([1,2,1])
+        conti[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
     if datafile is not None:
         left,right=st.columns([1,1])
         if Path(datafile.name).suffix == '.csv':
@@ -260,15 +236,58 @@ with tabs[3]: # machine learning model
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
     if datafile is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
-        cols = st.columns(3)
-        model_sel = cols[0].selectbox("Select the machine learning model:", 
+        cols = st.columns([2,3])
+        with cols[0].expander("**How to choose the ML model?**"):
+            st.write("""In the **Visual Assessment** tab, you can take a look at your data and make a pairplot out of it. This can help you in model selection:
+
+- **Linear Relationships:** If the pairplot shows linear relationships between features and the target variable, linear models like **LinearRegression**, **RidgeCV**, or **ElasticNetCV** might be appropriate.
+
+- **Non-linear Relationships:** If you observe non-linear patterns, models like **RandomForest**, **GradientBoosting**, or **GaussianProcess** could be more suitable, as they can capture complex relationships.
+
+- **Feature Correlations:** A pairplot can also reveal correlations between features. High correlations might suggest the need for regularization techniques (e.g., **RidgeCV** or **ElasticNetCV**) to handle multicollinearity.
+
+- **Outliers and Distribution:** Visualizing the data can help identify outliers or unusual distributions that might affect model performance. This insight can guide preprocessing steps or model choice.
+""")
+        recols = cols[0].columns(2)
+        with recols[0].expander("**ElasticNetCV**"):
+            st.write('''This model combines the properties of both Lasso and Ridge regression. It is useful when you have many correlated features and want to perform feature selection. It automatically tunes the regularization parameters using cross-validation.
+            ''')
+        with recols[0].expander("**RidgeCV**"):
+            st.write('''This is a linear regression model with L2 regularization. It is effective when dealing with multicollinearity (highly correlated features). RidgeCV automatically tunes the regularization strength using cross-validation, making it a good choice for improving model generalization.
+            ''')
+        with recols[0].expander("**LinearRegression**"):
+            st.write('''This is a simple and interpretable model that fits a linear relationship between the input features and the target variable. It is suitable for datasets where the relationship between features and the target is approximately linear.
+            ''')
+        with recols[1].expander("**RandomForest**"):
+            st.write('''This is an ensemble learning method that combines multiple decision trees to improve predictive performance. It is robust to overfitting and can handle both classification and regression tasks. RandomForest is a good choice when you have a large dataset with complex interactions.
+            ''')
+        with recols[1].expander("**GaussianProcess**"):
+            st.write('''This model is useful for small to medium-sized datasets and can capture complex relationships. It provides uncertainty estimates along with predictions, making it suitable for tasks where understanding prediction confidence is important.
+            ''')
+        with recols[1].expander("**GradientBoosting**"):
+            st.write('''This is an ensemble technique that builds models sequentially, each correcting the errors of the previous one. It is powerful for both regression and classification tasks and often achieves high performance, but it can be computationally intensive.
+            ''')
+        cols[1].write("###### Machine Learning Model")
+        colss = cols[1].columns(2)
+        model_sel = colss[0].selectbox("Select the machine learning model:", 
                 ["ElasticNetCV", "RidgeCV", "LinearRegression", 
-                 "RandomForest", "GaussianProcess", "GradientBoosting"])
-        split_size = cols[1].number_input("Validation set size:", 
+                 "RandomForest", "GaussianProcess", "GradientBoosting"],
+                on_change=model_changed)
+        split_size = colss[0].number_input("Validation set size:", 
                                              min_value=0.0, value=0.2,
-                                             max_value=1., step=.1)
-        features_in_log = cols[2].toggle("Log scale for features importance", value=True)
-        if st.button("Compute the machine learning model and plot the results"):
+                                             max_value=1., step=.1, 
+                                             on_change=model_changed)
+        features_in_log = colss[0].toggle("Log scale for features importance", 
+                                          value=True, 
+                                          on_change=model_changed)
+        colss[1].write("")
+        colss[1].write("")
+        colss[1].write("")
+        colss[1].write("")
+        if colss[1].button("Compute the machine learning model and plot the results",
+                          disabled=st.session_state['model_up_to_date'],
+                          on_click=model_updated,
+                          type="primary"):
             st.session_state.analysis.model_type = model_sel
             st.session_state.analysis.split_size = split_size
             st.session_state.analysis.compute_ML_model()
