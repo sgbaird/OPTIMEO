@@ -20,6 +20,13 @@ This App was developed within the frame of an academic research project, MOFSONG
 
 ---
 
+## Documentation
+
+- For the app, everything should be self-explanatory. You can hover the mouse on the question marks to get more information about the parameters.
+- For the package, the documentation is available on [GitHub](https://colinbousige.github.io/OPTIMEO/optimeo.html).
+
+---
+
 ## Usage
 
 ### With the web app
