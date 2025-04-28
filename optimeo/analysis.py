@@ -4,6 +4,18 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the Creative Commons Attribution-NonCommercial 
 # 4.0 International License. 
+
+"""
+The analysis module provides tools for data analysis and regression modeling.
+The main workhorse is the `DataAnalysis` class, which allows for encoding categorical variables, performing regression analysis, and visualizing results.
+
+It supports both linear regression using the `statsmodels` package and machine learning models from `sklearn`.
+The class also provides methods for plotting Q-Q plots, box plots, histograms, and scatter plots.
+It includes functionality for bootstrap resampling to estimate the variability of model coefficients.
+The `DataAnalysis` class is designed to be flexible and extensible, allowing users to customize the regression analysis process.
+"""
+
+
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
@@ -22,88 +34,34 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.pipeline import make_pipeline
 import seaborn as sns
 
-def bootstrap_coefficients(mod, X, y, n_bootstrap=100, random_state=None):
-    """
-    Perform bootstrap resampling to estimate the variability of model coefficients.
-
-    Parameters
-    ----------
-    mod : object
-        The machine learning model.
-    X : pd.DataFrame
-        The input features.
-    y : pd.Series
-        The target variable.
-    n_bootstrap : int, optional
-        The number of bootstrap samples. Default is 100.
-    random_state : int, optional
-        The seed for the random number generator.
-
-    Returns
-    -------
-    results : np.ndarray
-        The bootstrapped coefficients.
-    """
-    np.random.seed(random_state)
-    n_samples = X.shape[0]
-    results = []
-
-    for _ in range(n_bootstrap):
-        # Resample the data
-        indices = np.random.choice(np.arange(n_samples), size=n_samples, replace=True)
-        X_resample, y_resample = X.values[indices], y.values[indices]
-
-        # Fit the model
-        if isinstance(mod, RidgeCV):
-            model = RidgeCV(alphas=np.logspace(-3, 3, 10)).fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, ElasticNetCV):
-            model = ElasticNetCV(alphas=np.logspace(-3, 3, 10), l1_ratio=0.5).fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, LinearRegression):
-            model = LinearRegression().fit(X_resample, y_resample)
-            results.append(model.coef_)
-        elif isinstance(mod, RandomForestRegressor):
-            model = RandomForestRegressor().fit(X_resample, y_resample)
-            results.append(model.feature_importances_)
-        elif isinstance(mod, GradientBoostingRegressor):
-            model = GradientBoostingRegressor().fit(X_resample, y_resample)
-            results.append(model.feature_importances_)
-        elif isinstance(mod, GaussianProcessRegressor):
-            # Gaussian Process does not have coefficients or feature importances
-            model = GaussianProcessRegressor().fit(X_resample, y_resample)
-            results.append(np.zeros(X.shape[1]))  # Placeholder for Gaussian Process
-        else:
-            raise ValueError(f"Unsupported model type: {mod}")
-
-    return np.array(results)
 
 class DataAnalysis:
     """
     This class is used to analyze the data and perform regression analysis.
+    
+    ### Example
+    
+    ```python
+    from optimeo.analysis import * 
+
+    data = pd.read_csv('dataML.csv')
+    factors = data.columns[:-1]
+    response = data.columns[-1]
+    analysis = DataAnalysis(data, factors, response)
+    analysis.model_type = "ElasticNetCV"
+    MLmodel = analysis.compute_ML_model()
+    figs = analysis.plot_ML_model()
+    for fig in figs:
+        fig.show()
+    ```
     """
 
-    def __init__(self, data, factors, response, split_size=.2, model_type=None):
-        """
-        Initialize the DataAnalysis class.
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-            The input data.
-        factors : list
-            The list of factor variables.
-        response : str
-            The response variable.
-        encoders : dict
-            The encoders for categorical variables.
-        split_size : float, optional
-            The proportion of the dataset to include in the test split. Default is 0.2.
-        model_type : str, optional
-            The type of machine learning model to use. Default is None. 
-            Must be one of the following: "ElasticNetCV", "RidgeCV",
-            "LinearRegression", "RandomForest", "GaussianProcess", "GradientBoosting".
-        """
+    def __init__(self, 
+                 data: pd.DataFrame, 
+                 factors: list, 
+                 response: str, 
+                 split_size=.2, 
+                 model_type=None):
         self._dtypes = None
         self._encoders = {}
         self._linear_model = None
@@ -118,7 +76,7 @@ class DataAnalysis:
 
     @property
     def data(self):
-        """Get the input data."""
+        """The input `pandas.DataFrame`."""
         return self._data
 
     @data.setter
@@ -129,12 +87,8 @@ class DataAnalysis:
     
     def encode_data(self):
         """
-        Encode categorical variables in the data.
-
-        Returns
-        -------
-        tuple
-            A tuple containing the encoded data, encoders, and data types.
+        Called during initialization: encodes categorical variables in the data if there are any. 
+        Uses `LabelEncoder()` from `sklearn` to convert categorical variables to numerical values.
         """
         self._dtypes = self._data.dtypes
         for factor in self._factors:
@@ -145,7 +99,7 @@ class DataAnalysis:
 
     @property
     def factors(self):
-        """Get the list of factor variables."""
+        """The list of names of the columns of the `data` DataFrame that contain factor variables."""
         return self._factors
 
     @factors.setter
@@ -156,7 +110,7 @@ class DataAnalysis:
     
     @property
     def encoders(self):
-        """Get the list of encoders of categorical variables."""
+        """The list of encoders for categorical variables."""
         return self._encoders
     
     @encoders.setter
@@ -176,7 +130,7 @@ class DataAnalysis:
 
     @property
     def response(self):
-        """Get the response variable."""
+        """The name of the column of the `data` DataFrame that contain the response variable."""
         return self._response
 
     @response.setter
@@ -196,7 +150,7 @@ class DataAnalysis:
 
     @property
     def equation(self):
-        """Get the equation for the linear model."""
+        """The equation for the linear model, in the form `response ~ var1 + var2 + var1:var2`. This is based on the [statsmodels package](https://www.statsmodels.org/dev/examples/notebooks/generated/formulas.html)."""
         return self._equation
 
     @equation.setter
@@ -207,7 +161,9 @@ class DataAnalysis:
 
     @property
     def model_type(self):
-        """Get the type of machine learning model."""
+        """The type of machine learning model to use. Default is None. 
+            Must be one of the following: `"ElasticNetCV"`, `"RidgeCV"`,
+            `"LinearRegression"`, `"RandomForest"`, `"GaussianProcess"`, `"GradientBoosting"`."""
         return self._model_type
 
     @model_type.setter
@@ -222,7 +178,7 @@ class DataAnalysis:
 
     @property
     def model(self):
-        """Get the machine learning model."""
+        """The machine learning model object."""
         return self._model
 
     @model.setter
@@ -231,7 +187,7 @@ class DataAnalysis:
 
     @property
     def split_size(self):
-        """Get the split size for the dataset."""
+        """The proportion of the dataset to include in the test split. Default is `0.2`."""
         return self._split_size
 
     @split_size.setter
@@ -263,7 +219,8 @@ class DataAnalysis:
         fig : plotly.graph_objs.Figure
             The Q-Q plot figure.
         """
-        qqplot_data = qqplot(self._data[self._response], line='s').gca().lines
+        qqplot_data = pd.Series(self._data[self._response], copy=True)
+        qqplot_data = qqplot(qqplot_data, line='s').gca().lines
         fig = go.Figure()
 
         fig.add_trace({
@@ -921,3 +878,58 @@ class DataAnalysis:
 
 
 
+def bootstrap_coefficients(mod, X, y, n_bootstrap=100, random_state=None):
+    """
+    Perform bootstrap resampling to estimate the variability of model coefficients.
+
+    Parameters
+    ----------
+    mod : object
+        The machine learning model.
+    X : pd.DataFrame
+        The input features.
+    y : pd.Series
+        The target variable.
+    n_bootstrap : int, optional
+        The number of bootstrap samples. Default is 100.
+    random_state : int, optional
+        The seed for the random number generator.
+
+    Returns
+    -------
+    results : np.ndarray
+        The bootstrapped coefficients.
+    """
+    np.random.seed(random_state)
+    n_samples = X.shape[0]
+    results = []
+
+    for _ in range(n_bootstrap):
+        # Resample the data
+        indices = np.random.choice(np.arange(n_samples), size=n_samples, replace=True)
+        X_resample, y_resample = X.values[indices], y.values[indices]
+
+        # Fit the model
+        if isinstance(mod, RidgeCV):
+            model = RidgeCV(alphas=np.logspace(-3, 3, 10)).fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, ElasticNetCV):
+            model = ElasticNetCV(alphas=np.logspace(-3, 3, 10), l1_ratio=0.5).fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, LinearRegression):
+            model = LinearRegression().fit(X_resample, y_resample)
+            results.append(model.coef_)
+        elif isinstance(mod, RandomForestRegressor):
+            model = RandomForestRegressor().fit(X_resample, y_resample)
+            results.append(model.feature_importances_)
+        elif isinstance(mod, GradientBoostingRegressor):
+            model = GradientBoostingRegressor().fit(X_resample, y_resample)
+            results.append(model.feature_importances_)
+        elif isinstance(mod, GaussianProcessRegressor):
+            # Gaussian Process does not have coefficients or feature importances
+            model = GaussianProcessRegressor().fit(X_resample, y_resample)
+            results.append(np.zeros(X.shape[1]))  # Placeholder for Gaussian Process
+        else:
+            raise ValueError(f"Unsupported model type: {mod}")
+
+    return np.array(results)

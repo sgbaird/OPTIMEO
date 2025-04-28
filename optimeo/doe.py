@@ -4,6 +4,15 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the Creative Commons Attribution-NonCommercial 
 # 4.0 International License. 
+
+"""
+This module provides a class for creating and visualizing a design of experiments (DoE).
+It supports various types of designs including Full Factorial, Sobol sequence, Fractional Factorial, Definitive Screening Design, Space Filling Latin Hypercube, Randomized Latin Hypercube, Optimal, Plackett-Burman, and Box-Behnken.
+The class allows the user to specify the parameters, their types, and values, and generates the design accordingly.
+It also provides a method to plot the design using scatter plots.
+"""
+
+
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=DeprecationWarning)
@@ -30,79 +39,25 @@ class DesignOfExperiments:
     and various options for the design generation.
     The design can be visualized using scatter plots.
     
-    Parameters
-    ----------
-    type : str
-        The type of design to create. Must be one of:
-        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
-        'Definitive Screening Design', 'Space Filling Latin Hypercube',
-        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
-        'Box-Behnken'.
-    parameters : List[Dict[str, Dict[str, Any]]]
-        List of parameters for the design, each with a dictionary of properties.
-        Each dictionary should contain 'name', 'type', and 'values'.
-        'values' should be a list of possible values for the parameter.
-        'type' should be either "int", "integer", "float", "<other>". 
-        Any <other> will be considered as "categorical".
-        'values' should be a list of possible values for the parameter.
-    Nexp : int, optional
-        Number of experiments in the design, when applicable. Default is 4.
-    order : int, optional
-        Order of the model (for 'Optimal' design). Default is 2.
-    randomize : bool, optional
-        Whether to randomize the run order. Default is True.
-    reduction : int, optional
-        Reduction factor for 'Fractional Factorial' designs. Default is 2.
+    ### Example
     
-    Attributes
-    ----------
-    type : str
-        The type of design. Must be one of:
-        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
-        'Definitive Screening Design', 'Space Filling Latin Hypercube',
-        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
-        'Box-Behnken'.
-    parameters : List[Dict[str, Dict[str, Any]]]
-        The parameters for the design.
-    Nexp : int
-        Number of experiments in the design.
-    order : int
-        Order of the model.
-    randomize : bool
-        Whether to randomize the run order.
-    reduction : int
-        Reduction factor for 'Fractional Factorial' designs.
-    design : pd.DataFrame
-        The design DataFrame.
-    lows : Dict[str, float]
-        Lower bounds for the parameters.
-    highs : Dict[str, float]
-        Upper bounds for the parameters.
-    
-    Methods
-    -------
-    create_design()
-        Create the design of experiments based on the specified type and parameters.
-    plot()
-        Plot the design of experiments.
-    
-    Examples
-    --------
-    >>> from doe import DesignOfExperiments
-    >>> parameters = [
-    ...     {'name': 'Temperature', 'type': 'integer', 'values': [20, 30, 40]},
-    ...     {'name': 'Pressure', 'type': 'float', 'values': [1, 2, 3]},
-    ...     {'name': 'Catalyst', 'type': 'categorical', 'values': ['A', 'B', 'C']}
-    ... ]
-    >>> doe = DesignOfExperiments(
-    ...     type='Full Factorial',
-    ...     parameters=parameters
-    ... )
-    >>> design = doe.design
-    >>> print(design)
-    >>> figs = doe.plot()
-    >>> for fig in figs:
-    ...     fig.show()
+    ```python
+    from doe import DesignOfExperiments
+    parameters = [
+        {'name': 'Temperature', 'type': 'integer', 'values': [20, 30, 40]},
+        {'name': 'Pressure', 'type': 'float', 'values': [1, 2, 3]},
+        {'name': 'Catalyst', 'type': 'categorical', 'values': ['A', 'B', 'C']}
+    ]
+    doe = DesignOfExperiments(
+        type='Full Factorial',
+        parameters=parameters
+    )
+    design = doe.design
+    print(design)
+    figs = doe.plot()
+    for fig in figs:
+        fig.show()
+    ```
     
 
     """
@@ -112,33 +67,6 @@ class DesignOfExperiments:
                  Nexp: int = 4, order: int = 2, 
                  randomize: bool = True, reduction: int = 2,
                  feature_constraints: Optional[List[Dict[str, Any]]] = None):
-        """
-        Initialize the DesignOfExperiments class.
-
-        Parameters
-        ----------
-        type : str
-            The type of design to create. Must be one of:
-            'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
-            'Definitive Screening Design', 'Space Filling Latin Hypercube',
-            'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
-            'Box-Behnken'.
-        parameters : List[Dict[str, Dict[str, Any]]]
-            List of parameters for the design, each with a dictionary of properties.
-            Each dictionary should contain 'name', 'type', and 'values'.
-            'values' should be a list of possible values for the parameter.
-            'type' should be either "int", "integer", "float", "<other>". 
-            Any <other> will be considered as "categorical".
-            'values' should be a list of possible values for the parameter.
-        Nexp : int, optional
-            Number of experiments in the design, when applicable. Default is 4.
-        order : int, optional
-            Order of the model (for 'Optimal' design). Default is 2.
-        randomize : bool, optional
-            Whether to randomize the run order. Default is True.
-        reduction : int, optional
-            Reduction factor for 'Fractional Factorial' designs. Default is 2.
-        """
         self.type = type
         self.parameters = parameters
         self.Nexp = Nexp
@@ -175,7 +103,7 @@ class DesignOfExperiments:
 
     @property
     def type(self) -> str:
-        """Get the type of design."""
+        """The type of design to create. Must be one of: `'Full Factorial'`, `'Sobol sequence'`, `'Fractional Factorial'`, `'Definitive Screening Design'`, `'Space Filling Latin Hypercube'`, `'Randomized Latin Hypercube'`, `'Optimal'`, `'Plackett-Burman'`, `'Box-Behnken'`."""
         return self._type
 
     @type.setter
@@ -185,7 +113,12 @@ class DesignOfExperiments:
 
     @property
     def parameters(self) -> List[Dict[str, Dict[str, Any]]]:
-        """Get the parameters for the design."""
+        """List of parameters for the design, each with a dictionary of properties.
+            Each dictionary should contain the keys `"name"`, `"type"`, and `"values"`.
+            `"values"` should be a list of possible values for the parameter.
+            `"type"` should be either `"int"`, `"integer"`, `"float"`, `"<other>"`. 
+            Any `"<other>"` will be considered as `"categorical"`.
+            `values` should be a list of possible values for the parameter."""
         return self._parameters
 
     @parameters.setter
@@ -195,7 +128,7 @@ class DesignOfExperiments:
 
     @property
     def Nexp(self) -> int:
-        """Get the number of experiments."""
+        """Number of experiments in the design, when applicable. Default is `4`."""
         return self._Nexp
 
     @Nexp.setter
@@ -205,7 +138,7 @@ class DesignOfExperiments:
 
     @property
     def order(self) -> int:
-        """Get the order of the model."""
+        """Order of the model (for `'Optimal'` design). Default is `2`."""
         return self._order
     
     @property
@@ -235,7 +168,7 @@ class DesignOfExperiments:
 
     @property
     def randomize(self) -> bool:
-        """Get the randomize flag."""
+        """Whether to randomize the run order. Default is `True`."""
         return self._randomize
 
     @randomize.setter
@@ -245,7 +178,7 @@ class DesignOfExperiments:
 
     @property
     def reduction(self) -> int:
-        """Get the reduction factor."""
+        """Reduction factor for `'Fractional Factorial'` designs. Default is `2`."""
         return self._reduction
 
     @reduction.setter

@@ -4,6 +4,13 @@
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the Creative Commons Attribution-NonCommercial 
 # 4.0 International License. 
+
+"""
+This module provides a class for optimizing experiments using Bayesian Optimization (BO) with the [Ax platform](https://ax.dev/).
+It includes methods for initializing the experiment, suggesting trials, predicting outcomes, and plotting results.
+"""
+
+
 import streamlit as st
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -29,192 +36,33 @@ import plotly.graph_objects as go
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
 
-def flatten_dict(d, parent_key='', sep='_'):
-    """
-    Flatten a nested dictionary.
-    """
-    items = []
-    for k, v in d.items():
-        new_key = f"{parent_key}{sep}{k}" if parent_key else k
-        if isinstance(v, dict):
-            items.extend(flatten_dict(v, new_key, sep=sep).items())
-        else:
-            items.append((new_key, v))
-    return dict(items)
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
-def ordered_dict_to_dataframe(data):
-    """
-    Convert an OrderedDict with arbitrary nesting to a DataFrame.
-    """
-    dflat = flatten_dict(data)
-    out = []
-
-    for key, value in dflat.items():
-        main_dict = value[0]
-        sub_dict = value[1][0]
-        out.append([value for value in main_dict.values()] +
-                   [value for value in sub_dict.values()])
-
-    df = pd.DataFrame(out, columns=[key for key in main_dict.keys()] +
-                                   [key for key in sub_dict.keys()])
-    return df
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
-def read_experimental_data(file_path: str, out_pos=[-1]) -> (Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]):
-    """
-    Read experimental data from a CSV file and format it into features and outcomes dictionaries.
-
-    Parameters:
-    - file_path (str): Path to the CSV file containing experimental data.
-    - out_pos (list of int): Column indices of the outcome variables. Default is the last column.
-
-    Returns:
-    - Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]: Formatted features and outcomes dictionaries.
-    """
-    data = pd.read_csv(file_path)
-    data = clean_names(data, remove_special=True, case_type='preserve')
-    outcome_column_name = data.columns[out_pos]
-    features = data.loc[:, ~data.columns.isin(outcome_column_name)].copy()
-    outcomes = data[outcome_column_name].copy()
-
-    feature_definitions = {}
-    for column in features.columns:
-        if features[column].dtype == 'object':
-            unique_values = features[column].unique()
-            feature_definitions[column] = {'type': 'text',
-                                           'range': unique_values.tolist()}
-        elif features[column].dtype in ['int64', 'float64']:
-            min_val = features[column].min()
-            max_val = features[column].max()
-            feature_type = 'int' if features[column].dtype == 'int64' else 'float'
-            feature_definitions[column] = {'type': feature_type,
-                                           'range': [min_val, max_val]}
-
-    formatted_features = {name: {'type': info['type'],
-                                 'data': features[name].tolist(),
-                                 'range': info['range']}
-                          for name, info in feature_definitions.items()}
-    # same for outcomes with just type and data
-    outcome_definitions = {}
-    for column in outcomes.columns:
-        if outcomes[column].dtype == 'object':
-            unique_values = outcomes[column].unique()
-            outcome_definitions[column] = {'type': 'text',
-                                           'data': unique_values.tolist()}
-        elif outcomes[column].dtype in ['int64', 'float64']:
-            min_val = outcomes[column].min()
-            max_val = outcomes[column].max()
-            outcome_type = 'int' if outcomes[column].dtype == 'int64' else 'float'
-            outcome_definitions[column] = {'type': outcome_type,
-                                           'data': outcomes[column].tolist()}
-    formatted_outcomes = {name: {'type': info['type'],
-                                 'data': outcomes[name].tolist()}
-                           for name, info in outcome_definitions.items()}
-    return formatted_features, formatted_outcomes
-
-# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
-
 class BOExperiment:
     """
-    BOExperiment is a class designed to facilitate Bayesian Optimization experiments using the Ax platform.
+    BOExperiment is a class designed to facilitate Bayesian Optimization experiments using the [Ax platform](https://ax.dev/).
     It encapsulates the experiment setup, including features, outcomes, constraints, and optimization methods.
 
-    Attributes
-    ----------
-    
-    features: Dict[str, Dict[str, Any]]
-        A dictionary defining the features of the experiment, including their types and ranges.
-
-    outcomes: Dict[str, Dict[str, Any]]
-        A dictionary defining the outcomes of the experiment, including their types and observed data.
-
-    N: int
-        The number of trials to suggest in each optimization step. Must be a positive integer.
-
-    maximize: Union[bool, List[bool]]
-        A boolean or list of booleans indicating whether to maximize the outcomes.
-        If a single boolean is provided, it is applied to all outcomes.
-
-    outcome_constraints: Optional[Dict[str, Dict[str, float]]]
-        Constraints on the outcomes, specified as a dictionary or list of dictionaries.
-
-    feature_constraints: Optional[List[Dict[str, Any]]]
-        Constraints on the features, specified as a list of dictionaries.
-
-    optim: str
-        The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence.
-
-    data: pd.DataFrame
-        A DataFrame representing the current data in the experiment, including features and outcomes.
-
-    Methods
-    -------
-    
-    initialize_ax_client():
-        Initializes the AxClient with the experiment's parameters, objectives, and constraints.
-
-    suggest_next_trials():
-        Suggests the next set of trials based on the current model and optimization strategy.
-        Returns a DataFrame containing the suggested trials and their predicted outcomes.
-
-    predict(params: List[Dict[str, Any]]) -> List[Dict[str, float]]:
-        Predicts the outcomes for a given set of parameters using the current model.
-        Returns a list of predicted outcomes for the given parameters.
-
-    update_experiment(params: Dict[str, Any], outcomes: Dict[str, Any]):
-        Updates the experiment with new parameters and outcomes, and reinitializes the AxClient.
-
-    plot_model(metricname: Optional[str] = None, slice_values: Optional[Dict[str, Any]]  None, linear: bool = False)`:
-        Plots the model's predictions for the experiment's parameters and outcomes.
-        If metricname is None, the first outcome metric is used.
-        If slice_values is provided, it slices the plot at those values.
-        If linear is True, it plots a linear slice plot.
-        If the experiment has only one feature, it plots a slice plot.
-        If the experiment has multiple features, it plots a contour plot.
-        Returns a Plotly figure of the model's predictions.
-
-    plot_optimization_trace(optimum: Optional[float] = None):
-        Plots the optimization trace, showing the progress of the optimization over trials.
-        If the experiment has multiple outcomes, it raises a warning and returns None.
-        Returns a Plotly figure of the optimization trace.
-
-    plot_pareto_frontier():
-        Plots the Pareto frontier for multi-objective optimization experiments.
-        If the experiment has only one outcome, it raises a warning and returns None.
-        Returns a Plotly figure of the Pareto frontier.
-
-    get_best_parameters() -> pd.DataFrame:
-        Returns the best parameters found by the optimization process.
-        If the experiment has multiple outcomes, it returns a DataFrame of the Pareto optimal parameters.
-        If the experiment has only one outcome, it returns a DataFrame of the best parameters and their outcomes.
-        The DataFrame contains the best parameters and their corresponding outcomes.
-
-    Properties
-    ----------
-
-    features, outcomes, N, maximize, outcome_constraints, feature_constraints, optim, data:
-        Getter and setter methods for the respective attributes, with validation to ensure data integrity.
-    
     Example
     -------
-    >>> features, outcomes = read_experimental_data('data.csv', out_pos=[-2, -1])
-    >>> experiment = BOExperiment(features, outcomes, N=5, maximize={'out1':True, 'out2':False})
-    >>> experiment.suggest_next_trials()
-    >>> experiment.plot_model(metricname='outcome1')
-    >>> experiment.plot_model(metricname='outcome2', linear=True)
-    >>> experiment.plot_model(metricname='outcome1', slice_values={'feature1': 5})
-    >>> experiment.plot_optimization_trace()
-    >>> experiment.plot_pareto_frontier()
-    >>> experiment.get_best_parameters()
-    >>> experiment.update_experiment({'feature1': [4]}, {'outcome1': [0.4]})
-    >>> experiment.plot_model()
-    >>> experiment.plot_optimization_trace()
-    >>> experiment.plot_pareto_frontier()
-    >>> experiment.get_best_parameters()
-    
+    ```python
+    features, outcomes = read_experimental_data('data.csv', out_pos=[-2, -1])
+    experiment = BOExperiment(features, 
+                              outcomes, 
+                              N=5, 
+                              maximize={'out1':True, 'out2':False}
+                              )
+    experiment.suggest_next_trials()
+    experiment.plot_model(metricname='outcome1')
+    experiment.plot_model(metricname='outcome2', linear=True)
+    experiment.plot_model(metricname='outcome1', slice_values={'feature1': 5})
+    experiment.plot_optimization_trace()
+    experiment.plot_pareto_frontier()
+    experiment.get_best_parameters()
+    experiment.update_experiment({'feature1': [4]}, {'outcome1': [0.4]})
+    experiment.plot_model()
+    experiment.plot_optimization_trace()
+    experiment.plot_pareto_frontier()
+    experiment.get_best_parameters()
+    ```
     """
 
     def __init__(self,
@@ -224,49 +72,10 @@ class BOExperiment:
                  N=1,
                  maximize: Union[bool, Dict[str, bool]] = True,
                  fixed_features: Optional[Dict[str, Any]] = None,
-                 outcome_constraints: Optional[Dict[str, Dict[str, float]]] = None,
-                 feature_constraints: Optional[List[Dict[str, Any]]] = None,
+                 outcome_constraints: Optional[List[str]] = None,
+                 feature_constraints: Optional[List[str]] = None,
                  optim='bo') -> None:
-        """
-        Initialize the BOExperiment with features, outcomes, and optimization settings.
-
-        Parameters
-        ----------
-
-        features: Dict[str, Dict[str, Any]]
-            A dictionary defining the features of the experiment, including their types and ranges.
-
-        outcomes: Dict[str, Dict[str, Any]]
-            A dictionary defining the outcomes of the experiment, including their types and observed data.
-        
-        ranges: Optional[Dict[str, Dict[str, Any]]], optional
-            A dictionary defining the ranges of the features. Default is None.
-            If not provided, the ranges will be inferred from the features data.
-            The ranges should be in the format {'feature_name': [minvalue,maxvalue]}.
-
-        N: int, optional
-            The number of trials to suggest in each optimization step. Must be a positive integer. Default is 1.
-
-        maximize: Union[bool, Dict[str, bool]] = True
-            A boolean or dict indicating whether to maximize the outcomes.
-            If a single boolean is provided, it is applied to all outcomes. Default is True.
-        
-        fixed_features: Optional[Dict[str, Any]], optional
-            A dictionary defining fixed features with their values. Default is None.
-            If provided, the fixed features will be treated as fixed parameters in the generation process.
-            The fixed features should be in the format {'feature_name': value}.
-            The values should be the fixed values for the respective features.
-
-        outcome_constraints: Optional[Dict[str, Dict[str, float]]], optional
-            Constraints on the outcomes, specified as a dictionary or list of dictionaries. Default is None.
-
-        feature_constraints: Optional[List[Dict[str, Any]]], optional
-            Constraints on the features, specified as a list of dictionaries. Default is None.
-
-        optim: str, optional
-            The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence. Default is 'bo'.
-        """
-        self.first_initialization_done = False
+        self._first_initialization_done = False
         self.ranges              = ranges
         self.features            = features
         self.names               = list(self._features.keys())
@@ -278,18 +87,41 @@ class BOExperiment:
         self.feature_constraints = feature_constraints
         self.optim               = optim
         self.candidate = None
+        """The candidate(s) suggested by the optimization process."""
         self.ax_client = None
+        """Ax's client for the experiment."""
         self.model = None
+        """Ax's Gaussian Process model."""
         self.parameters = None
+        """Ax's parameters for the experiment."""
         self.generator_run = None
+        """Ax's generator run for the experiment."""
         self.gs = None
+        """Ax's generation strategy for the experiment."""
         self.initialize_ax_client()
-        self.first_initialization_done = True
+        self._first_initialization_done = True
+        """To indicate that the first initialization is done so that we don't call `initialize_ax_client()` again."""
 
     @property
     def features(self):
         """
-        Get the features of the experiment.
+        A dictionary defining the features of the experiment, including their types and ranges.
+        
+        Example
+        -------
+        ```python
+        features = {
+            'feature1': {'type': 'int', 
+                         'data': [1, 2, 3], 
+                         'range': [1, 3]},
+            'feature2': {'type': 'float', 
+                         'data': [0.1, 0.2, 0.3], 
+                         'range': [0.1, 0.3]},
+            'feature3': {'type': 'text', 
+                         'data': ['A', 'B', 'C'], 
+                         'range': ['A', 'B', 'C']}
+            }
+        ```
         """
         return self._features
 
@@ -313,13 +145,33 @@ class BOExperiment:
                 elif self._features[name]['type'] == 'float':
                     self._features[name]['range'] = [float(np.min(self._features[name]['data'])),
                                                      float(np.max(self._features[name]['data']))]
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
+    
+    @property
+    def ranges(self):
+        """
+        A dictionary defining the ranges of the features. Default is `None`.
+        
+        If not provided, the ranges will be inferred from the features data.
+        The ranges should be in the format `{'feature_name': [minvalue,maxvalue]}`.
+        """
+        return self._ranges
+
+    @ranges.setter
+    def ranges(self, value):
+        """
+        Set the ranges of the features with validation.
+        """
+        if value is not None:
+            if not isinstance(value, dict):
+                raise ValueError("ranges must be a dictionary")
+        self._ranges = value
     
     @property
     def names(self):
         """
-        Get the names of the features.
+        The names of the features.
         """
         return self._names
     
@@ -335,7 +187,18 @@ class BOExperiment:
     @property
     def outcomes(self):
         """
-        Get the outcomes of the experiment.
+        A dictionary defining the outcomes of the experiment, including their types and observed data.
+        
+        Example
+        -------
+        ```python
+        outcomes = {
+            'outcome1': {'type': 'float', 
+                         'data': [0.1, 0.2, 0.3]},
+            'outcome2': {'type': 'float', 
+                         'data': [1.0, 2.0, 3.0]}
+            }
+        ```
         """
         return self._outcomes
 
@@ -348,13 +211,16 @@ class BOExperiment:
             raise ValueError("outcomes must be a dictionary")
         self._outcomes = value
         self.out_names = list(value.keys())
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
     
     @property
     def fixed_features(self):
         """
-        Get the fixed features of the experiment.
+        A dictionary defining fixed features with their values. Default is `None`.
+        If provided, the fixed features will be treated as fixed parameters in the generation process.
+        The fixed features should be in the format `{'feature_name': value}`.
+        The values should be the fixed values for the respective features.
         """
         return self._fixed_features
 
@@ -372,13 +238,13 @@ class BOExperiment:
                     raise ValueError(f"Fixed feature '{name}' not found in features")
             # fixed_features should be an ObservationFeatures object
             self._fixed_features = ObservationFeatures(parameters=value)
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.set_gs()
 
     @property
     def N(self):
         """
-        Get the number of trials to suggest in each optimization step.
+        The number of trials to suggest in each optimization step. Must be a positive integer. Default is `1`.
         """
         return self._N
 
@@ -390,13 +256,14 @@ class BOExperiment:
         if not isinstance(value, int) or value <= 0:
             raise ValueError("N must be a positive integer")
         self._N = value
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.set_gs()
 
     @property
     def maximize(self):
         """
-        Get the maximization setting for the outcomes.
+        A boolean or dict indicating whether to maximize the outcomes in the form `{'outcome1':True, 'outcome2':False}`.
+        If a single boolean is provided, it is applied to all outcomes. Default is `True`.
         """
         return self._maximize
 
@@ -411,13 +278,13 @@ class BOExperiment:
             self._maximize = value
         else:
             raise ValueError("maximize must be a boolean or a list of booleans with the same length as outcomes")
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
 
     @property
     def outcome_constraints(self):
         """
-        Get the outcome constraints of the experiment.
+        Constraints on the outcomes, specified as a list of strings. Default is `None`.
         """
         return self._outcome_constraints
 
@@ -432,13 +299,22 @@ class BOExperiment:
             self._outcome_constraints = value
         else:
             self._outcome_constraints = None
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
 
     @property
     def feature_constraints(self):
         """
-        Get the feature constraints of the experiment.
+        Constraints on the features, specified as a list of strings. Default is `None`.
+        
+        Example
+        -------
+        ```python
+        feature_constraints = [
+            'feature1 <= 10.0',
+            'feature1 + 2*feature2 >= 3.0'
+        ]
+        ```
         """
         return self._feature_constraints
 
@@ -455,13 +331,13 @@ class BOExperiment:
             self._feature_constraints = [value]
         else:
             self._feature_constraints = None
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
 
     @property
     def optim(self):
         """
-        Get the optimization method.
+        The optimization method to use, either `'bo'` for Bayesian Optimization or `'sobol'` for Sobol sequence. Default is `'bo'`.
         """
         return self._optim
 
@@ -474,7 +350,7 @@ class BOExperiment:
         if value not in ['bo', 'sobol']:
             raise ValueError("Optimization method must be either 'bo' or 'sobol'")
         self._optim = value
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.set_gs()
 
     @property
@@ -504,7 +380,7 @@ class BOExperiment:
         for col in outcome_columns:
             self._outcomes[col]['data'] = value[col].tolist()
 
-        if self.first_initialization_done:
+        if self._first_initialization_done:
             self.initialize_ax_client()
 
     def __repr__(self):
@@ -650,9 +526,9 @@ Input data:
         if self.ax_client is None:
             self.initialize_ax_client()
         if self._N == 1:
-            trial = self.ax_client.experiment.new_trial(self.generator_run)
+            self.candidate = self.ax_client.experiment.new_trial(self.generator_run)
         else:
-            trial = self.ax_client.experiment.new_batch_trial(self.generator_run)
+            self.candidate = self.ax_client.experiment.new_batch_trial(self.generator_run)
         trials = self.ax_client.get_trials_data_frame()
         trials = trials[trials['trial_status'] == 'CANDIDATE']
         trials = trials[[name for name in self.names]]
@@ -987,3 +863,95 @@ Input data:
             best = ordered_dict_to_dataframe(best_parameters)
         return best
 
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+def flatten_dict(d, parent_key="", sep="_"):
+    """
+    Flatten a nested dictionary.
+    """
+    items = []
+    for k, v in d.items():
+        new_key = f"{parent_key}{sep}{k}" if parent_key else k
+        if isinstance(v, dict):
+            items.extend(flatten_dict(v, new_key, sep=sep).items())
+        else:
+            items.append((new_key, v))
+    return dict(items)
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+def ordered_dict_to_dataframe(data):
+    """
+    Convert an OrderedDict with arbitrary nesting to a DataFrame.
+    """
+    dflat = flatten_dict(data)
+    out = []
+
+    for key, value in dflat.items():
+        main_dict = value[0]
+        sub_dict = value[1][0]
+        out.append([value for value in main_dict.values()] +
+                   [value for value in sub_dict.values()])
+
+    df = pd.DataFrame(out, columns=[key for key in main_dict.keys()] +
+                                   [key for key in sub_dict.keys()])
+    return df
+
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
+
+def read_experimental_data(file_path: str, out_pos=[-1]) -> (Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]):
+    """
+    Read experimental data from a CSV file and format it into features and outcomes dictionaries.
+
+    Parameters
+    ----------
+    file_path (str) 
+        Path to the CSV file containing experimental data.
+    out_pos (list of int)
+        Column indices of the outcome variables. Default is the last column.
+
+    Returns
+    -------
+    Tuple[Dict[str, Dict[str, Any]], Dict[str, Dict[str, Any]]]
+        Formatted features and outcomes dictionaries.
+    """
+    data = pd.read_csv(file_path)
+    data = clean_names(data, remove_special=True, case_type='preserve')
+    outcome_column_name = data.columns[out_pos]
+    features = data.loc[:, ~data.columns.isin(outcome_column_name)].copy()
+    outcomes = data[outcome_column_name].copy()
+
+    feature_definitions = {}
+    for column in features.columns:
+        if features[column].dtype == 'object':
+            unique_values = features[column].unique()
+            feature_definitions[column] = {'type': 'text',
+                                           'range': unique_values.tolist()}
+        elif features[column].dtype in ['int64', 'float64']:
+            min_val = features[column].min()
+            max_val = features[column].max()
+            feature_type = 'int' if features[column].dtype == 'int64' else 'float'
+            feature_definitions[column] = {'type': feature_type,
+                                           'range': [min_val, max_val]}
+
+    formatted_features = {name: {'type': info['type'],
+                                 'data': features[name].tolist(),
+                                 'range': info['range']}
+                          for name, info in feature_definitions.items()}
+    # same for outcomes with just type and data
+    outcome_definitions = {}
+    for column in outcomes.columns:
+        if outcomes[column].dtype == 'object':
+            unique_values = outcomes[column].unique()
+            outcome_definitions[column] = {'type': 'text',
+                                           'data': unique_values.tolist()}
+        elif outcomes[column].dtype in ['int64', 'float64']:
+            min_val = outcomes[column].min()
+            max_val = outcomes[column].max()
+            outcome_type = 'int' if outcomes[column].dtype == 'int64' else 'float'
+            outcome_definitions[column] = {'type': outcome_type,
+                                           'data': outcomes[column].tolist()}
+    formatted_outcomes = {name: {'type': info['type'],
+                                 'data': outcomes[name].tolist()}
+                           for name, info in outcome_definitions.items()}
+    return formatted_features, formatted_outcomes

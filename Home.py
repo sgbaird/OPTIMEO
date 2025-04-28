@@ -164,7 +164,7 @@ This work is related to the article "xxxx". Please cite this work if you publish
     journal = {xxx},
     volume = {xxx},
     year = {xxx},
-    pages = {xxx}
+    pages = {xxx},
     doi = {xxx}
 }
 ```

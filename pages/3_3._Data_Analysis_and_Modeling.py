@@ -107,7 +107,7 @@ For Excel-like files, the first sheet will be used, and data should start in the
             data = pd.read_excel(datafile)
         data = clean_names(data, remove_special=True, case_type='preserve')
         cols = data.columns.to_numpy()
-        st.dataframe(data, hide_index=True)
+        st.dataframe(data, hide_index=False)
         mincol = 1 if 'run_order' in cols else 0
         factors = left.multiselect("Select the **factors** columns:", 
                 data.columns, default=cols[mincol:-1], on_change=data_changed)
@@ -133,19 +133,19 @@ with tabs[1]: # visual assessment
 
         # Q-Q Plot
         fig = st.session_state.analysis.plot_qq()
-        cols[0].plotly_chart(fig)
+        cols[0].plotly_chart(fig, key="qq_plot")
 
         # Box Plot
         fig = st.session_state.analysis.plot_boxplot()
-        cols[1].plotly_chart(fig)
+        cols[1].plotly_chart(fig, key="box_plot")
 
         # Histogram
         fig = st.session_state.analysis.plot_histogram()
-        cols[2].plotly_chart(fig)
+        cols[2].plotly_chart(fig, key="histogram")
 
         # Scatter Plot of Response Values
         fig = st.session_state.analysis.plot_scatter_response()
-        cols[3].plotly_chart(fig)
+        cols[3].plotly_chart(fig, key="scatter_response")
 
         # Scatter Plots for Each Factor
         cols = st.columns(ncols)
