@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# change this to your own path
+cd /Users/colin/Travail/Scripts/Optimization/OPTIMEO/
+# source the virtual environment if you made one
+# 
+# don't change this:
+streamlit run Home.py
