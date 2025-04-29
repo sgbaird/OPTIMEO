@@ -2,18 +2,61 @@
 
 ---
 
-## About this app
+## About this package
 
-[OPTIMEO](https://optimeo.streamlit.app/) is a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
+[OPTIMEO](https://optimeo.streamlit.app/) is a package doubled by a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
 
-This App was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-xxxxxx). See the related paper reference in [How to cite](#how-to-cite).
+This package was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-24-CE08-7639). See the related paper reference in [How to cite](#how-to-cite).
 
 ---
 
-## Documentation
+## Installation
 
-- For the app, everything should be self-explanatory. You can hover the mouse on the question marks to get more information about the parameters.
-- For the package, the documentation is available on [GitHub](https://colinbousige.github.io/OPTIMEO/optimeo.html).
+### Installing the package
+
+```bash
+git clone https://github.com/colinbousige/OPTIMEO.git
+cd OPTIMEO
+pip install . # to install OPTIMEO as a package
+```
+
+If you did `pip install .`, you can upgrade to new a version or uninstall with:
+
+```bash
+# upgrade the optimeo package
+cd OPTIMEO
+pip install --upgrade .
+# uninstall the optimeo package
+pip uninstall optimeo
+```
+
+### Using the web app
+
+- You can use the app directly on its [Streamlit.io web page](https://optimeo.streamlit.app/), but it might be a bit slow if you have a lot of data to process. 
+
+- If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you can do so by running the following command in your terminal:
+
+```bash
+git clone https://github.com/colinbousige/OPTIMEO.git
+cd OPTIMEO
+pip install -r requirements.txt # to install the required packages
+```
+
+Finally, you can run the app by running the following command in your terminal:
+
+```bash
+streamlit run Home.py
+```
+
+- You can also modify the path to the `OPTIMEO` folder in `OPTIMEO/bin/optimeo`. Then, doing the following will add the `optimeo` command to your `PATH`:
+
+```bash
+git clone https://github.com/colinbousige/OPTIMEO.git
+cd OPTIMEO
+pip install . # to install OPTIMEO as a package
+```
+
+So now, you just have to run `optimeo` in your terminal to run the app.
 
 ---
 
@@ -40,7 +83,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 
 #### For Design of Experiment
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/doe.ipynb)
+A more detailed example is given in [the notebook](examples/doe.html).
 
 ```python
 from optimeo.doe import * 
@@ -59,7 +102,7 @@ doe
 
 #### For Bayesian Optimization
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/bo.ipynb)
+A more detailed example is given in [the notebook](examples/bo.html).
 
 ```python
 from optimeo.bo import * 
@@ -79,7 +122,7 @@ bo.suggest_next_trials()
 
 #### For Data Analysis
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/MLanalysis.ipynb)
+A more detailed example is given in [the notebook](examples/MLanalysis.html).
 
 ```python
 from optimeo.analysis import * 
@@ -95,40 +138,7 @@ for fig in figs:
     fig.show()
 ```
 
----
 
-## Installation
-
-You can use the app directly on its [Streamlit.io web page](https://optimeo.streamlit.app/).
-
-If you'd rather run this app on your local machine (which will most probably make it faster than running it on streamlit.io), you need to have Python installed. You can download it [here](https://www.python.org/downloads/).
-
-Then, you can install the required packages by running the following command in your terminal:
-
-```bash
-git clone https://github.com/colinbousige/OPTIMEO.git
-cd OPTIMEO
-# either
-pip install . # to install OPTIMEO as a package
-# or
-pip install -r requirements.txt # to install the required packages
-```
-
-Finally, you can run the app by running the following command in your terminal:
-
-```bash
-streamlit run Home.py
-```
-
-If you did `pip install .`, you can upgrade to new a version or uninstall with:
-
-```bash
-# upgrade the optimeo package
-cd OPTIMEO
-pip install --upgrade .
-# uninstall the optimeo package
-pip uninstall optimeo
-```
 
 ---
 
@@ -169,7 +179,7 @@ The source can be found [on Github](https://github.com/colinbousige/optimeo), pl
 
 ## Acknowledgements
 
-This work was supported by the French National Research Agency (N° ANR-xxxxxx).  
+This work was supported by the French National Research Agency (N° ANR-24-CE08-7639).  
 Also, this work was made possible thanks to the following open-source projects:
 
 - [ax](https://ax.dev/)

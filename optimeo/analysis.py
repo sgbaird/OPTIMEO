@@ -13,6 +13,9 @@ It supports both linear regression using the `statsmodels` package and machine l
 The class also provides methods for plotting Q-Q plots, box plots, histograms, and scatter plots.
 It includes functionality for bootstrap resampling to estimate the variability of model coefficients.
 The `DataAnalysis` class is designed to be flexible and extensible, allowing users to customize the regression analysis process.
+
+You can see an example notebook [here](../examples/MLanalysis.html).
+
 """
 
 
@@ -38,8 +41,75 @@ import seaborn as sns
 class DataAnalysis:
     """
     This class is used to analyze the data and perform regression analysis.
+
+    Parameters
+    ----------
+
+    data : pd.DataFrame
+        The input data.
+    factors : list
+        The list of factor variables.
+    response : str
+        The response variable.
+    split_size : float, optional
+        The proportion of the dataset to include in the test split. Default is `0.2`.
+    model_type : str, optional
+        The type of machine learning model to use. Default is None. 
+        Must be one of the following: `"ElasticNetCV"`, `"RidgeCV"`,
+        `"LinearRegression"`, `"RandomForest"`, `"GaussianProcess"`, `"GradientBoosting"`.
     
-    ### Example
+    Attributes
+    ----------
+    
+    data : pd.DataFrame
+        The input data.
+    factors : list
+        The list of factor variables.
+    response : str
+        The response variable.
+    encoders : dict
+        The encoders for categorical variables.
+    dtypes : pd.Series  
+        The data types of the columns.
+    linear_model : object
+        The linear model object.
+    equation : str
+        The equation for the linear model, in the form `response ~ var1 + var2 + var1:var2`.
+    model : object
+        The machine learning model object.
+    model_type : str
+        The type of machine learning model to use.
+    split_size : float
+        The proportion of the dataset to include in the test split.
+
+    Methods
+    -------
+    
+    - **encode_data()**:
+        Encodes categorical variables in the data. Called during initialization.
+    - **plot_qq()**:
+        Plots a Q-Q plot for the response variable using `plotly`.
+    - **plot_boxplot()**:
+        Plots a boxplot for the response variable using `plotly`.
+    - **plot_histogram()**:
+        Plots a histogram for the response variable using `plotly`.
+    - **plot_scatter_response()**:
+        Plots a scatter plot for the response variable using `plotly`.
+    - **plot_pairplot()**:
+        Plots a pairplot for the data.
+    - **write_equation(order=1, quadratic=[])**:
+        Writes R-style equation for multivariate fitting procedure using the `statsmodels` package.
+    - **compute_linear_model(order=1, quadratic=[])**:
+        Computes the linear model using the `statsmodels` package.
+    - **plot_linear_model()**:
+        Plots the linear model using `plotly`.
+    - <b>compute_ML_model(**kwargs)</b>:
+        Computes the machine learning model using `sklearn`.
+    - **plot_ML_model(features_in_log=False)**:
+        Plots the machine learning model using `plotly`.
+    
+    Example
+    -------
     
     ```python
     from optimeo.analysis import * 

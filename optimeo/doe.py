@@ -10,6 +10,8 @@ This module provides a class for creating and visualizing a design of experiment
 It supports various types of designs including Full Factorial, Sobol sequence, Fractional Factorial, Definitive Screening Design, Space Filling Latin Hypercube, Randomized Latin Hypercube, Optimal, Plackett-Burman, and Box-Behnken.
 The class allows the user to specify the parameters, their types, and values, and generates the design accordingly.
 It also provides a method to plot the design using scatter plots.
+
+You can see an example notebook [here](../examples/doe.html).
 """
 
 
@@ -39,7 +41,74 @@ class DesignOfExperiments:
     and various options for the design generation.
     The design can be visualized using scatter plots.
     
-    ### Example
+    
+    Parameters
+    ----------
+    
+    type : str
+        The type of design to create. Must be one of:
+        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
+        'Definitive Screening Design', 'Space Filling Latin Hypercube',
+        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
+        'Box-Behnken'.
+    parameters : List[Dict[str, Dict[str, Any]]]
+        List of parameters for the design, each with a dictionary of properties.
+        Each dictionary should contain 'name', 'type', and 'values'.
+        'values' should be a list of possible values for the parameter.
+        'type' should be either "int", "integer", "float", "<other>". 
+        Any <other> will be considered as "categorical".
+        'values' should be a list of possible values for the parameter.
+    Nexp : int, optional
+        Number of experiments in the design, when applicable. Default is 4.
+    order : int, optional
+        Order of the model (for 'Optimal' design). Default is 2.
+    randomize : bool, optional
+        Whether to randomize the run order. Default is True.
+    reduction : int, optional
+        Reduction factor for 'Fractional Factorial' designs. Default is 2.
+    feature_constraints : Optional[List[Dict[str, Any]]], optional
+        Feature constraints of the experiment for Sobol sequence. Default is None.
+        If a single dictionary is provided, it will be converted to a list.
+        If a string is provided, it will be converted to a list with one element.
+        If a list is provided, it will be used as is.
+        If None, no constraints will be applied.
+    
+    Attributes
+    ----------
+    
+    type : str
+        The type of design. Must be one of:
+        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
+        'Definitive Screening Design', 'Space Filling Latin Hypercube',
+        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
+        'Box-Behnken'.
+    parameters : List[Dict[str, Dict[str, Any]]]
+        The parameters for the design.
+    Nexp : int
+        Number of experiments in the design.
+    order : int
+        Order of the model.
+    randomize : bool
+        Whether to randomize the run order.
+    reduction : int
+        Reduction factor for 'Fractional Factorial' designs.
+    design : pd.DataFrame
+        The design DataFrame.
+    lows : Dict[str, float]
+        Lower bounds for the parameters.
+    highs : Dict[str, float]
+        Upper bounds for the parameters.
+    
+    Methods
+    -------
+    - **create_design()**:
+        Create the design of experiments based on the specified type and parameters.
+    - **plot()**:
+        Plot the design of experiments using plotly.
+    
+    
+    Example
+    -------
     
     ```python
     from doe import DesignOfExperiments
@@ -62,10 +131,13 @@ class DesignOfExperiments:
 
     """
 
-    def __init__(self, type: str,
+    def __init__(self, 
+                 type: str,
                  parameters: List[Dict[str, Dict[str, Any]]],
-                 Nexp: int = 4, order: int = 2, 
-                 randomize: bool = True, reduction: int = 2,
+                 Nexp: int = 4, 
+                 order: int = 2, 
+                 randomize: bool = True, 
+                 reduction: int = 2,
                  feature_constraints: Optional[List[Dict[str, Any]]] = None):
         self.type = type
         self.parameters = parameters

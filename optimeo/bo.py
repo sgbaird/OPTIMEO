@@ -8,6 +8,9 @@
 """
 This module provides a class for optimizing experiments using Bayesian Optimization (BO) with the [Ax platform](https://ax.dev/).
 It includes methods for initializing the experiment, suggesting trials, predicting outcomes, and plotting results.
+
+You can see an example notebook [here](../examples/bo.html).
+
 """
 
 
@@ -40,6 +43,115 @@ class BOExperiment:
     """
     BOExperiment is a class designed to facilitate Bayesian Optimization experiments using the [Ax platform](https://ax.dev/).
     It encapsulates the experiment setup, including features, outcomes, constraints, and optimization methods.
+    
+    Parameters
+    ----------
+    features: Dict[str, Dict[str, Any]]
+        A dictionary defining the features of the experiment, including their types and ranges.
+        Each feature is represented as a dictionary with keys 'type', 'data', and 'range'.
+        - 'type': The type of the feature (e.g., 'int', 'float', 'text').
+        - 'data': The observed data for the feature.
+        - 'range': The range of values for the feature.
+    outcomes: Dict[str, Dict[str, Any]]
+        A dictionary defining the outcomes of the experiment, including their types and observed data.
+        Each outcome is represented as a dictionary with keys 'type' and 'data'.
+        - 'type': The type of the outcome (e.g., 'int', 'float').
+        - 'data': The observed data for the outcome.
+    ranges: Optional[Dict[str, Dict[str, Any]]]
+        A dictionary defining the ranges of the features. Default is `None`.
+        If not provided, the ranges will be inferred from the features data.
+        The ranges should be in the format `{'feature_name': [minvalue,maxvalue]}`.
+    N: int
+        The number of trials to suggest in each optimization step. Must be a positive integer.
+    maximize: Union[bool, Dict[str, bool]]
+        A boolean or dict indicating whether to maximize the outcomes in the form `{'outcome1':True, 'outcome2':False}`.
+        If a single boolean is provided, it is applied to all outcomes. Default is `True`.
+    fixed_features: Optional[Dict[str, Any]]
+        A dictionary defining fixed features with their values. Default is `None`.
+        If provided, the fixed features will be treated as fixed parameters in the generation process.
+        The fixed features should be in the format `{'feature_name': value}`.
+        The values should be the fixed values for the respective features.
+    outcome_constraints: Optional[List[str]]
+        Constraints on the outcomes, specified as a list of strings. Default is `None`.
+        The constraints should be in the format `{'outcome_name': [minvalue,maxvalue]}`.
+    feature_constraints: Optional[List[str]]
+        Constraints on the features, specified as a list of strings. Default is `None`.
+        The constraints should be in the format `{'feature_name': [minvalue,maxvalue]}`.
+    optim: str
+        The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence. Default is 'bo'.
+    
+    Attributes
+    ----------
+    
+    features: Dict[str, Dict[str, Any]]
+        A dictionary defining the features of the experiment, including their types and ranges.
+
+    outcomes: Dict[str, Dict[str, Any]]
+        A dictionary defining the outcomes of the experiment, including their types and observed data.
+
+    N: int
+        The number of trials to suggest in each optimization step. Must be a positive integer.
+
+    maximize: Union[bool, List[bool]]
+        A boolean or list of booleans indicating whether to maximize the outcomes.
+        If a single boolean is provided, it is applied to all outcomes.
+
+    outcome_constraints: Optional[Dict[str, Dict[str, float]]]
+        Constraints on the outcomes, specified as a dictionary or list of dictionaries.
+
+    feature_constraints: Optional[List[Dict[str, Any]]]
+        Constraints on the features, specified as a list of dictionaries.
+
+    optim: str
+        The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence.
+
+    data: pd.DataFrame
+        A DataFrame representing the current data in the experiment, including features and outcomes.
+
+    Methods
+    -------
+    
+    - <b>initialize_ax_client()</b>:
+        Initializes the AxClient with the experiment's parameters, objectives, and constraints.
+    - <b>suggest_next_trials()</b>:
+        Suggests the next set of trials based on the current model and optimization strategy.
+        Returns a DataFrame containing the suggested trials and their predicted outcomes.
+    - <b>predict(params: List[Dict[str, Any]]) -> List[Dict[str, float]]</b>:
+        Predicts the outcomes for a given set of parameters using the current model.
+        Returns a list of predicted outcomes for the given parameters.
+    - <b>update_experiment(params: Dict[str, Any], outcomes: Dict[str, Any])</b>:
+        Updates the experiment with new parameters and outcomes, and reinitializes the AxClient.
+    - <b>plot_model(metricname: Optional[str] = None, slice_values: Optional[Dict[str, Any]]  None, linear: bool = False)`</b>:
+        Plots the model's predictions for the experiment's parameters and outcomes.
+        If metricname is None, the first outcome metric is used.
+        If slice_values is provided, it slices the plot at those values.
+        If linear is True, it plots a linear slice plot.
+        If the experiment has only one feature, it plots a slice plot.
+        If the experiment has multiple features, it plots a contour plot.
+        Returns a Plotly figure of the model's predictions.
+    - <b>plot_optimization_trace(optimum: Optional[float] = None)</b>:
+        Plots the optimization trace, showing the progress of the optimization over trials.
+        If the experiment has multiple outcomes, it raises a warning and returns None.
+        Returns a Plotly figure of the optimization trace.
+    - <b>plot_pareto_frontier()</b>:
+        Plots the Pareto frontier for multi-objective optimization experiments.
+        If the experiment has only one outcome, it raises a warning and returns None.
+        Returns a Plotly figure of the Pareto frontier.
+    - <b>get_best_parameters() -> pd.DataFrame</b>:
+        Returns the best parameters found by the optimization process.
+        If the experiment has multiple outcomes, it returns a DataFrame of the Pareto optimal parameters.
+        If the experiment has only one outcome, it returns a DataFrame of the best parameters and their outcomes.
+        The DataFrame contains the best parameters and their corresponding outcomes.
+    - <b>clear_trials()</b>:
+        Clears all trials in the experiment.
+        This is useful for resetting the experiment before suggesting new trials.
+    - <b>set_model()</b>:
+        Sets the model to be used for predictions.
+        This method is called after initializing the AxClient.
+    - <b>set_gs()</b>:
+        Sets the generation strategy for the experiment.
+        This method is called after initializing the AxClient.
+
 
     Example
     -------
