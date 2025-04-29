@@ -24,8 +24,6 @@ cols[1].image("ressources/logo.png", width=200)
 st.markdown("""
 ---
 
----
-
 ## About this package
 
 [OPTIMEO](https://optimeo.streamlit.app/) is a package doubled by a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
