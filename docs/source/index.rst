@@ -1,3 +1,4 @@
-.. literalinclude:: ../../optimeo/
-    :language: python
-    :linenos:
+.. autosummary::
+   :toctree: generated
+
+   optimeo
