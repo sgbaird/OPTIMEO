@@ -40,7 +40,7 @@ st.write("""
 design_type = st.sidebar.selectbox("Design type",
         ['Sobol sequence','Full Factorial', 'Fractional Factorial', 
          'Definitive Screening Design', 'Space Filling Latin Hypercube', 
-         'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'])
+         'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken', 'Central Composite'])
 
 cols = st.sidebar.columns(2)
 cols[0].write("N parameters")
@@ -49,8 +49,11 @@ parameters = np.array([{'name': '', 'actual': 0., 'coded': 0.} for i in range(Np
 cols[1].write("Random order")
 randomize = cols[1].checkbox("Randomize", value=True, label_visibility="collapsed")
 reduction = 2
-order=2
+order = 2
 Nexp = 4
+center = (1,1)
+alpha = 'o'
+face = 'ccc'
 feature_constraints = []
 # # # # # # # # # # # # # # # # 
 tab1, tab2, tab3 = st.tabs(["How to choose the proper design?", "Parameters Ranges", "Experimental Design"])
@@ -111,15 +114,37 @@ elif design_type=='Optimal':
         order = 3
     else:
         order = 0
+elif design_type=='Central Composite':
+    center = st.sidebar.text_input("Center point (comma separated)",
+            value="2,2", help="Number of center points for each factor.").split(",")
+    center = (int(center[0]), int(center[1]))
+    face = st.sidebar.selectbox("Face", ['circumscribed', 'inscribed', 'faced'])
+    if face == 'circumscribed':
+        face = 'ccc'
+    elif face == 'inscribed':
+        face = 'cci'
+    elif face == 'faced':
+        face = 'ccf'
+    alpha = st.sidebar.selectbox("Alpha", ['orthogonal', 'rotatable'])
+    if alpha == 'orthogonal':
+        alpha = 'o'
+    elif alpha == 'rotatable':
+        alpha = 'r'
+    # change parameter values to list
+    for par in range(Npars):
+        parameters[par]['values'] = parameters[par]['values'].tolist()
 
 doe = DesignOfExperiments(
-    type=design_type,
-    parameters=parameters,
-    Nexp=Nexp,
-    reduction=reduction,
-    order=order,
-    randomize=randomize,
-    feature_constraints=feature_constraints
+    type                = design_type,
+    parameters          = parameters,
+    Nexp                = Nexp,
+    reduction           = reduction,
+    order               = order,
+    randomize           = randomize,
+    feature_constraints = feature_constraints,
+    center              = center,
+    alpha               = alpha,
+    face                = face
 )
 design = doe.design
 

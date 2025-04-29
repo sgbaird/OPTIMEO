@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+import os
 
 setup(
     name='optimeo',
-    version='0.1.0',
+    version='1.0',
     packages=find_packages(include=['optimeo', 'optimeo.*']),
     install_requires=[
         "streamlit",

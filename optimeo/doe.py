@@ -47,10 +47,10 @@ class DesignOfExperiments:
     
     type : str
         The type of design to create. Must be one of:
-        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
-        'Definitive Screening Design', 'Space Filling Latin Hypercube',
-        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
-        'Box-Behnken'.
+        `'Full Factorial'`, `'Sobol sequence'`, `'Fractional Factorial'`,
+        `'Definitive Screening'`, `'Space Filling Latin Hypercube'`,
+        `'Randomized Latin Hypercube'`, `'Optimal'`, `'Plackett-Burman'`,
+        `'Box-Behnken'` or `'Central Composite'`.
     parameters : List[Dict[str, Dict[str, Any]]]
         List of parameters for the design, each with a dictionary of properties.
         Each dictionary should contain 'name', 'type', and 'values'.
@@ -77,11 +77,7 @@ class DesignOfExperiments:
     ----------
     
     type : str
-        The type of design. Must be one of:
-        'Full Factorial', 'Sobol sequence', 'Fractional Factorial',
-        'Definitive Screening Design', 'Space Filling Latin Hypercube',
-        'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman',
-        'Box-Behnken'.
+        The type of design.
     parameters : List[Dict[str, Dict[str, Any]]]
         The parameters for the design.
     Nexp : int
@@ -91,7 +87,7 @@ class DesignOfExperiments:
     randomize : bool
         Whether to randomize the run order.
     reduction : int
-        Reduction factor for 'Fractional Factorial' designs.
+        Reduction factor for `'Fractional Factorial'` designs.
     design : pd.DataFrame
         The design DataFrame.
     lows : Dict[str, float]
@@ -138,13 +134,19 @@ class DesignOfExperiments:
                  order: int = 2, 
                  randomize: bool = True, 
                  reduction: int = 2,
-                 feature_constraints: Optional[List[Dict[str, Any]]] = None):
+                 feature_constraints: Optional[List[Dict[str, Any]]] = None,
+                 center=(2,2),
+                 alpha='o',
+                 face='ccc'):
         self.type = type
         self.parameters = parameters
         self.Nexp = Nexp
         self.order = order
         self.randomize = randomize
         self.reduction = reduction
+        self.center = center
+        self.alpha = alpha
+        self.face = face
         self.design = None
         self.lows = {}
         self.feature_constraints = feature_constraints
@@ -175,7 +177,7 @@ class DesignOfExperiments:
 
     @property
     def type(self) -> str:
-        """The type of design to create. Must be one of: `'Full Factorial'`, `'Sobol sequence'`, `'Fractional Factorial'`, `'Definitive Screening Design'`, `'Space Filling Latin Hypercube'`, `'Randomized Latin Hypercube'`, `'Optimal'`, `'Plackett-Burman'`, `'Box-Behnken'`."""
+        """The type of design to create. Must be one of: `'Full Factorial'`, `'Sobol sequence'`, `'Fractional Factorial'`, `'Definitive Screening'`, `'Space Filling Latin Hypercube'`, `'Randomized Latin Hypercube'`, `'Optimal'`, `'Plackett-Burman'`, `'Box-Behnken'` or `'Central Composite'`."""
         return self._type
 
     @type.setter
@@ -212,6 +214,53 @@ class DesignOfExperiments:
     def order(self) -> int:
         """Order of the model (for `'Optimal'` design). Default is `2`."""
         return self._order
+    
+    @property
+    def center(self) -> tuple:
+        """Center for the Central Composite Design. Must be a tuple of two values."""
+        return self._center
+    
+    @center.setter
+    def center(self, value: tuple):
+        """Set the center of the design."""
+        if not isinstance(value, tuple):
+            raise ValueError("Center must be a tuple of two values.")
+        if len(value) != 2:
+            raise ValueError("Center must be a tuple of two values.")
+        if not all(isinstance(i, (int, float)) for i in value):
+            raise ValueError("Center must be a tuple of two numeric values.")
+        self._center = value
+    
+    @property
+    def alpha(self) -> str:
+        """Alpha for the Central Composite Design. Default is `'o'` (orthogonal).
+        Can be either `'o'` or `'r'` (rotatable)."""
+        return self._alpha
+    
+    @alpha.setter
+    def alpha(self, value: str):
+        """Set the alpha of the design."""
+        if value not in ['o', 'r']:
+            raise ValueError("Alpha must be either 'o' (orthogonal) or 'r' (rotatable).")
+        self._alpha = value
+    
+    @property
+    def face(self) -> str:
+        """The relation between the start points and the corner (factorial) points for the Central Composite Design.
+        
+        There are three possible options for this input:
+        
+        1. 'circumscribed' or 'ccc' (Default)
+        2. 'inscribed' or 'cci'
+        3. 'faced' or 'ccf'"""
+        return self._face
+
+    @face.setter
+    def face(self, value: str):
+        """Set the face of the design."""
+        if value not in ['ccc', 'cci', 'ccf']:
+            raise ValueError("Face must be either 'ccc' (circumscribed), 'cci' (inscribed), or 'ccf' (faced).")
+        self._face = value
     
     @property
     def lows(self) -> Dict[str, float]:
@@ -379,7 +428,7 @@ class DesignOfExperiments:
                     self.parameters[par]['encoder'] = le
             design = gsd([len(par['values']) for par in self.parameters], self.reduction)
             self.design = pd.DataFrame(design, columns=[par['name'] for par in self.parameters])
-        elif self.type == 'Definitive Screening Design':
+        elif self.type == 'Definitive Screening':
             params = {par['name']: [np.min(par['values']), np.max(par['values'])] for par in self.parameters}
             self.design = dsd.generate(factors_dict=params)
         elif self.type == 'Space Filling Latin Hypercube':
@@ -400,9 +449,14 @@ class DesignOfExperiments:
                 self.design = pd.DataFrame({})
                 raise Warning("Box-Behnken design is not possible with less than 3 parameters and with less than 3 levels for any parameter.")
             else:
-                self.design = build.box_behnken(d=pars, center=1)
+                self.design = build.box_behnken(d=pars)
+        elif self.type == 'Central Composite':
+            self.design = build.central_composite(pars, 
+                                                  center=self.center,
+                                                  alpha=self.alpha,
+                                                  face=self.face)
         else:
-            raise Warning("Unknown design type. Must be one of: 'Full Factorial', 'Sobol sequence', 'Fractional Factorial', 'Definitive Screening Design', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken'.")
+            raise Warning("Unknown design type. Must be one of: 'Full Factorial', 'Sobol sequence', 'Fractional Factorial', 'Definitive Screening', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken' or 'Central Composite'.")
 
         for par in self.parameters:
             if par['type'] == "Categorical" and self.type != 'Sobol sequence':
