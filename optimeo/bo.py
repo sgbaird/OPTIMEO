@@ -35,6 +35,7 @@ from ax.plot.pareto_frontier import plot_pareto_frontier
 from ax.plot.pareto_utils import compute_posterior_pareto_frontier
 from ax.plot.slice import plot_slice
 from ax.service.ax_client import AxClient, ObjectiveProperties
+from botorch.acquisition.analytic import *
 import plotly.graph_objects as go
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # 
@@ -186,7 +187,8 @@ class BOExperiment:
                  fixed_features: Optional[Dict[str, Any]] = None,
                  outcome_constraints: Optional[List[str]] = None,
                  feature_constraints: Optional[List[str]] = None,
-                 optim='bo') -> None:
+                 optim='bo',
+                 acq_func=None) -> None:
         self._first_initialization_done = False
         self.ranges              = ranges
         self.features            = features
@@ -198,6 +200,8 @@ class BOExperiment:
         self.outcome_constraints = outcome_constraints
         self.feature_constraints = feature_constraints
         self.optim               = optim
+        self.acq_func            = acq_func
+        """The acquisition function to use for the optimization process."""
         self.candidate = None
         """The candidate(s) suggested by the optimization process."""
         self.ax_client = None
@@ -494,6 +498,25 @@ class BOExperiment:
 
         if self._first_initialization_done:
             self.initialize_ax_client()
+    
+    @property
+    def acq_func(self):
+        """
+        The acquisition function to use for the optimization process. It must be a dict with 2 keys:
+        - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
+        - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
+        If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
+        """
+        return self._acq_func
+    
+    @acq_func.setter
+    def acq_func(self, value):
+        """
+        Set the acquisition function with validation.
+        """
+        self._acq_func = value
+        if self._first_initialization_done:
+            self.set_gs()
 
     def __repr__(self):
         return self.__str__()
@@ -585,14 +608,26 @@ Input data:
         if self._optim == 'bo':
             if not self.model:
                 self.set_model()
-            self.gs = GenerationStrategy(
-                steps=[GenerationStep(
-                            model=Models.BOTORCH_MODULAR,
-                            num_trials=-1,  # No limitation on how many trials should be produced from this step
-                            max_parallelism=3,  # Parallelism limit for this step, often lower than for Sobol
-                        )
-                    ]
-                )
+            if self.acq_func is None:
+                self.gs = GenerationStrategy(
+                    steps=[GenerationStep(
+                                model=Models.BOTORCH_MODULAR,
+                                num_trials=-1,  # No limitation on how many trials should be produced from this step
+                                max_parallelism=3,  # Parallelism limit for this step, often lower than for Sobol
+                            )
+                        ]
+                    )
+            else:
+                self.gs = GenerationStrategy(
+                    steps=[GenerationStep(
+                                model=Models.BOTORCH_MODULAR,
+                                num_trials=-1,  # No limitation on how many trials should be produced from this step
+                                max_parallelism=3,  # Parallelism limit for this step, often lower than for Sobol
+                                model_kwargs={"botorch_acqf_class": self.acq_func['acqf'],
+                                              "acquisition_options": self.acq_func['acqf_kwargs']}
+                            )
+                        ]
+                    )
         elif self._optim == 'sobol':
             self.gs = GenerationStrategy(
                 steps=[GenerationStep(

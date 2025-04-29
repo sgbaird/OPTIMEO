@@ -65,7 +65,7 @@ st.write("""
 
 tabs = st.tabs(["Data Loading", "Bayesian Optimization", 'Predictions'])
 
-with tabs[0]:
+with tabs[0]:# Data Loading
     colos = st.columns([2,3])
     dataf = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).
 
@@ -218,7 +218,7 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
         st.write("")
 
 
-with tabs[1]:
+with tabs[1]:# Bayesian Optimization
     if dataf is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
@@ -270,7 +270,8 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                 # feature_constraints += [f'{par} <= {fixparval[i]}']
         
         # add a text input to add constraints
-        feature_constraints = container.text_input("""Add **linear** constraints on the parameters (if any). Use a comma to separate multiple constraints.""",
+        cols = container.columns([2,1])
+        feature_constraints = cols[0].text_input("""Add **linear** constraints on the parameters (if any). Use a comma to separate multiple constraints.""",
                 help="""The constraints should be in the form of inequalities such as:
 
 - `x1 >= 0`
@@ -306,6 +307,38 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
 #             outcome_constraints = outcome_constraints.split(",")
 #         else:
 #             outcome_constraints = []
+        acq_function = None
+        tuning = cols[1].toggle("Allow tuning Optimization vs Explotaiton?",
+                                disabled=False if Nexp==1 else True,
+                                value=False,
+                                help="""⚠️ **This will only work for a single number of experiment**.
+
+By default, the acquisition function that is used is the logarithm of the Expected Improvement (EI), providing a good balance between exploration and exploitation. If you check this box, the acquisition function will be the Upper Confidence Bound (UCB), which allows you to tune the balance between exploration and exploitation.
+
+The UCB is defined as:
+
+$$ UCB(x) = \\mu(x) + \\sqrt{\\beta} \\sigma(x) $$
+
+where $\\mu(x)$ is the predicted mean at point $x$, $\\sigma(x)$ is the predicted standard deviation at point $x$, and $\\beta$ is a tuning parameter that controls the balance between exploration and exploitation. A higher value of $\\beta$ will lead to more exploration, while a lower value will lead to more exploitation. The default value of $\\beta$ is 0.5, which provides a good balance between exploration and exploitation.
+
+""")
+        if tuning:
+            beta = cols[1].slider("Tuning parameter ($\\beta=10^x$)", 
+                                min_value=-5, 
+                                max_value = 5, 
+                                value = 0,
+                                step = 1,
+                                on_change = model_changed,
+                                help="""Tuning parameter for the UCB acquisition function.
+
+- A **higher** value will lead to more **exploration**,
+- A **lower** value will lead to more **exploitation**.""")
+            if Nexp==1:
+                acq_function = {'acqf': UpperConfidenceBound, 
+                                'acqf_kwargs': {'beta': 10**beta}}
+            else:
+                st.warning("The UCB acquisition function is only available for a single number of experiment.", icon="⚠️")
+                acq_function = None
         
         # Perform Bayesian optimization
         colos = container.columns([6,1])
@@ -349,7 +382,8 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
                     features, outcomes,
                     factor_ranges, Nexp, maximize, 
                     fixed_features, feature_constraints, 
-                    sampler_list[samplerchoice]
+                    sampler_list[samplerchoice],
+                    acq_function
                     )
             st.session_state.plot_up_to_date = False
             st.session_state['next'] = st.session_state['bo'].suggest_next_trials()
@@ -427,7 +461,7 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
                 st.plotly_chart(figpareto, key=f"figpareto")
 
 
-with tabs[2]:
+with tabs[2]:# Predictions
     if dataf is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:

@@ -194,7 +194,7 @@ def check_ranges(ranges):
 # @st.cache_data
 def update_model(features, outcomes, 
                  factor_ranges, Nexp, maximize, 
-                 fixed_features, feature_constraints, sampler):
+                 fixed_features, feature_constraints, sampler, acq_function):
     """
     Update the model if the parameters have changed.
     """
@@ -207,15 +207,16 @@ def update_model(features, outcomes,
             factor_ranges != st.session_state['bo'].ranges or 
             maximize != st.session_state['bo'].maximize):
         st.session_state['bo'] = BOExperiment(
-            features=features, 
-            outcomes=outcomes,
-            ranges=factor_ranges,
-            N = Nexp,
-            maximize=maximize,
-            outcome_constraints=None,
-            fixed_features=fixed_features,
-            feature_constraints=feature_constraints,
-            optim = sampler
+            features            = features, 
+            outcomes            = outcomes,
+            ranges              = factor_ranges,
+            N                   = Nexp,
+            maximize            = maximize,
+            outcome_constraints = None,
+            fixed_features      = fixed_features,
+            feature_constraints = feature_constraints,
+            optim               = sampler,
+            acq_func            = acq_function
             )
     else:
         # see if parameters that just play on the generation have changed
