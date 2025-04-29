@@ -199,6 +199,12 @@ The source can be found [on Github](https://github.com/colinbousige/optimeo), pl
 
 ---
 
+## Documentation
+
+The package documentation is available on the [GitHub page of the app](https://colinbousige.github.io/OPTIMEO/optimeo.html).
+
+---
+
 ## Acknowledgements
 
 This work was supported by the French National Research Agency (N° ANR-24-CE08-7639).  

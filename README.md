@@ -10,6 +10,12 @@ This package was developed within the frame of an academic research project, MOF
 
 ---
 
+## Documentation
+
+The package documentation is available on the [GitHub page of the app](https://colinbousige.github.io/OPTIMEO/optimeo.html)
+
+---
+
 ## Installation
 
 ### Installing the package
