@@ -80,34 +80,54 @@ class BOExperiment:
         The constraints should be in the format `{'feature_name': [minvalue,maxvalue]}`.
     optim: str
         The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence. Default is 'bo'.
+    acq_func: Optional[Dict[str, Any]]
+        The acquisition function to use for the optimization process. It must be a dict with 2 keys:
+        - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
+        - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
+        If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
     
     Attributes
     ----------
     
     features: Dict[str, Dict[str, Any]]
         A dictionary defining the features of the experiment, including their types and ranges.
-
     outcomes: Dict[str, Dict[str, Any]]
         A dictionary defining the outcomes of the experiment, including their types and observed data.
-
     N: int
         The number of trials to suggest in each optimization step. Must be a positive integer.
-
     maximize: Union[bool, List[bool]]
         A boolean or list of booleans indicating whether to maximize the outcomes.
         If a single boolean is provided, it is applied to all outcomes.
-
     outcome_constraints: Optional[Dict[str, Dict[str, float]]]
         Constraints on the outcomes, specified as a dictionary or list of dictionaries.
-
     feature_constraints: Optional[List[Dict[str, Any]]]
         Constraints on the features, specified as a list of dictionaries.
-
     optim: str
         The optimization method to use, either 'bo' for Bayesian Optimization or 'sobol' for Sobol sequence.
-
     data: pd.DataFrame
         A DataFrame representing the current data in the experiment, including features and outcomes.
+    acq_func: dict
+        The acquisition function to use for the optimization process. It must be a dict with 2 keys:
+        - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
+        - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
+        If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
+    generator_run:
+        The generator run for the experiment, used to generate new candidates.
+    model:
+        The model used for predictions in the experiment.
+    ax_client:
+        The AxClient for the experiment, used to manage trials and data.
+    gs:
+        The generation strategy for the experiment, used to generate new candidates.
+    parameters:
+        The parameters for the experiment, including their types and ranges.
+    names:
+        The names of the features in the experiment.
+    fixed_features:
+        The fixed features for the experiment, used to generate new candidates.
+    candidate:
+        The candidate(s) suggested by the optimization process.
+        
 
     Methods
     -------
@@ -201,7 +221,6 @@ class BOExperiment:
         self.feature_constraints = feature_constraints
         self.optim               = optim
         self.acq_func            = acq_func
-        """The acquisition function to use for the optimization process."""
         self.candidate = None
         """The candidate(s) suggested by the optimization process."""
         self.ax_client = None
