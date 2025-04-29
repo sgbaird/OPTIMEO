@@ -84,6 +84,7 @@ class BOExperiment:
         The acquisition function to use for the optimization process. It must be a dict with 2 keys:
         - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
         - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
+        
         If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
     
     Attributes
@@ -107,10 +108,7 @@ class BOExperiment:
     data: pd.DataFrame
         A DataFrame representing the current data in the experiment, including features and outcomes.
     acq_func: dict
-        The acquisition function to use for the optimization process. It must be a dict with 2 keys:
-        - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
-        - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
-        If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
+        The acquisition function to use for the optimization process. 
     generator_run:
         The generator run for the experiment, used to generate new candidates.
     model:
@@ -524,7 +522,17 @@ class BOExperiment:
         The acquisition function to use for the optimization process. It must be a dict with 2 keys:
         - `acqf`: the acquisition function class to use (e.g., `UpperConfidenceBound`),
         - `acqf_kwargs`: a dict of the kwargs to pass to the acquisition function class. (e.g. `{'beta': 0.1}`).
+        
         If not provided, the default acquisition function is used (`LogExpectedImprovement` or `qLogExpectedImprovement` if N>1).
+        
+        Example
+        -------
+        ```python
+        acq_func = {
+            'acqf': UpperConfidenceBound,
+            'acqf_kwargs': {'beta': 0.1} # lower value = exploitation, higher value = exploration
+        }
+        ```
         """
         return self._acq_func
     
