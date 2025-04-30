@@ -99,7 +99,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 
 #### For Design of Experiment
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/doe.ipynb).
+A more detailed example is given in [the notebook](https://colinbousige.github.io/OPTIMEO/examples/doe.html).
 
 ```python
 from optimeo.doe import * 
@@ -118,7 +118,7 @@ doe
 
 #### For Bayesian Optimization
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/bo.ipynb).
+A more detailed example is given in [the notebook](https://colinbousige.github.io/OPTIMEO/examples/bo.html).
 
 ```python
 from optimeo.bo import * 
@@ -138,7 +138,7 @@ bo.suggest_next_trials()
 
 #### For Data Analysis
 
-A more detailed example is given in [the notebook](https://github.com/colinbousige/OPTIMEO/blob/main/notebooks/MLanalysis.ipynb).
+A more detailed example is given in [the notebook](https://colinbousige.github.io/OPTIMEO/examples/MLanalysis.html).
 
 ```python
 from optimeo.analysis import * 
@@ -157,8 +157,6 @@ for fig in figs:
 ## Support
 
 This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMEO).
-
-
 
 ## How to cite
 
@@ -199,6 +197,10 @@ Also, this work was made possible thanks to the following open-source projects:
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
+
+## Contributing
+
+Contributions and bug reports are welcome! Please open an issue or make a pull request to do so.
 
 ## License
 
