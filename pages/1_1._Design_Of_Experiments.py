@@ -115,21 +115,21 @@ elif design_type=='Optimal':
     else:
         order = 0
 elif design_type=='Central Composite':
-    center = st.sidebar.text_input("Center point (comma separated)",
-            value="2,2", help="Number of center points for each factor.").split(",")
-    center = (int(center[0]), int(center[1]))
-    face = st.sidebar.selectbox("Face", ['circumscribed', 'inscribed', 'faced'])
-    if face == 'circumscribed':
+    center = st.sidebar.slider("Number of replications of the center point:",
+            value=1, min_value=0, max_value=10, step=1)
+    center = (0, center)
+    face = st.sidebar.selectbox("Type of design:", ['Circumscribed', 'Inscribed', 'Faced'])
+    if face == 'Circumscribed':
         face = 'ccc'
-    elif face == 'inscribed':
+    elif face == 'Inscribed':
         face = 'cci'
-    elif face == 'faced':
+    elif face == 'Faced':
         face = 'ccf'
-    alpha = st.sidebar.selectbox("Alpha", ['orthogonal', 'rotatable'])
-    if alpha == 'orthogonal':
-        alpha = 'o'
-    elif alpha == 'rotatable':
-        alpha = 'r'
+    # alpha = st.sidebar.selectbox("Alpha", ['orthogonal', 'rotatable'])
+    # if alpha == 'orthogonal':
+    #     alpha = 'o'
+    # elif alpha == 'rotatable':
+    #     alpha = 'r'
     # change parameter values to list
     for par in range(Npars):
         parameters[par]['values'] = parameters[par]['values'].tolist()
