@@ -23,6 +23,7 @@ cols[1].write('')
 cols[1].image("ressources/logo.png", width=200)
 st.markdown("""
 <a href="https://doi.org/10.5281/zenodo.15308437"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg" alt="DOI"></a>
+[![](https://badgen.net/badge/icon/GitHub?icon=github&label)](https://github.com/colinbousige/OPTIMEO)
 
 ---
 
@@ -65,7 +66,7 @@ Analyze the results of your experiments and model the response of your process.
 
 ### With the Python package
 
-You can also use the app as a Python package (see [Documentation](https://colinbousige.github.io/OPTIMEO/optimeo.html).
+You can also use the app as a Python package (see [Documentation](https://colinbousige.github.io/OPTIMEO/optimeo.html)).
 
 ---
 
