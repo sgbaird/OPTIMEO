@@ -1,5 +1,7 @@
 # OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
 
+<a href="https://doi.org/10.5281/zenodo.15308438"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308438.svg" alt="DOI"></a>
+
 - [About this package](#about-this-package)
 - [Documentation](#documentation)
 - [Installation](#installation)
