@@ -1,20 +1,14 @@
 # OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
 
----
-
 ## About this package
 
 [OPTIMEO](https://optimeo.streamlit.app/) is a package doubled by a web application that helps you optimize your experimental process by generating a Design of Experiment (DoE), generating new experiments using Bayesian Optimization, and analyzing the results of your experiments using Machine Learning models.
 
 This package was developed within the frame of an academic research project, MOFSONG, funded by the French National Research Agency (N° ANR-24-CE08-7639). See the related paper reference in [How to cite](#how-to-cite).
 
----
-
 ## Documentation
 
 The package documentation is available on the [GitHub page of the app](https://colinbousige.github.io/OPTIMEO/optimeo.html)
-
----
 
 ## Installation
 
@@ -63,8 +57,6 @@ pip install . # to install OPTIMEO as a package
 ```
 
 So now, you just have to run `optimeo` in your terminal to run the app.
-
----
 
 ## Usage
 
@@ -144,15 +136,11 @@ for fig in figs:
     fig.show()
 ```
 
-
-
----
-
 ## Support
 
 This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMEO).
 
----
+<!-- 
 
 ## How to cite
 
@@ -177,11 +165,8 @@ The source can be found [on Github](https://github.com/colinbousige/optimeo), pl
     author = {Bousige, Colin},
     title = {{OPTIMEO}},
     url = {https://github.com/colinbousige/optimeo},
-    doi = {xxxx}
 }
-```
-
----
+``` -->
 
 ## Acknowledgements
 
@@ -194,8 +179,7 @@ Also, this work was made possible thanks to the following open-source projects:
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
-
----
+- [scikit-learn](https://scikit-learn.org/stable/)
 
 ## License
 

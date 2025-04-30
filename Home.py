@@ -184,14 +184,13 @@ This work is related to the article "xxxx". Please cite this work if you publish
 }
 ```
 
-The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it too:
+The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it:
 
 ```bibtex
 @software{Bousige_optimeo,
     author = {Bousige, Colin},
     title = {{OPTIMEO}},
-    url = {https://github.com/colinbousige/optimeo},
-    doi = {xxxx}
+    url = {https://github.com/colinbousige/optimeo}
 }
 ```
 
@@ -214,6 +213,7 @@ Also, this work was made possible thanks to the following open-source projects:
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
+- [scikit-learn](https://scikit-learn.org/stable/)
 
 ---
 

@@ -198,6 +198,7 @@ Also, this work was made possible thanks to the following open-source projects:
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
+- [scikit-learn](https://scikit-learn.org/stable/)
 
 ---
 
