@@ -34,7 +34,9 @@ performing numerical orbit integration).
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
+blalvlal
+
+<!-- `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
 enables wrapping low-level languages (e.g., C) for speed without losing
 flexibility or ease-of-use in the user-interface. The API for `Gala` was
 designed to provide a class-based and user-friendly interface to fast (C or
@@ -52,7 +54,7 @@ used in graduate courses on Galactic dynamics to, e.g., provide interactive
 visualizations of textbook material [@Binney:2008]. The combination of speed,
 design, and support for Astropy functionality in `Gala` will enable exciting
 scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
+[@gaia] by students and experts alike. -->
 
 
 <!-- # Figures
