@@ -174,14 +174,14 @@ This work is related to the article "xxxx". Please cite this work if you publish
 }
 ```
 
-The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it too:
+The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it as:
 
 ```bibtex
 @software{Bousige_optimeo,
     author = {Bousige, Colin},
     title = {{OPTIMEO}},
     url = {https://github.com/colinbousige/optimeo},
-    doi = {xxxx}
+    doi = {10.5281/zenodo.15308438}
 }
 ```
 

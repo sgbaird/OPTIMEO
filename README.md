@@ -156,11 +156,11 @@ for fig in figs:
 
 This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me for support or to signal a bug, or leave a message on the [GitHub page of the app](https://github.com/colinbousige/OPTIMEO).
 
-<!-- 
+
 
 ## How to cite
 
-This work is related to the article "xxxx". Please cite this work if you publish using this code:
+<!-- This work is related to the article "xxxx". Please cite this work if you publish using this code:
 
 ```bibtex
 @article{xxx,
@@ -172,17 +172,18 @@ This work is related to the article "xxxx". Please cite this work if you publish
     pages = {xxx},
     doi = {xxx}
 }
-```
+``` -->
 
-The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it too:
+The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing it as:
 
 ```bibtex
 @software{Bousige_optimeo,
     author = {Bousige, Colin},
     title = {{OPTIMEO}},
     url = {https://github.com/colinbousige/optimeo},
+    doi={10.5281/zenodo.15308438}
 }
-``` -->
+```
 
 ## Acknowledgements
 
