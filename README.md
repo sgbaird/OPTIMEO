@@ -1,6 +1,6 @@
 # OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
 
-<a href="https://doi.org/10.5281/zenodo.15308438"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308438.svg" alt="DOI"></a>
+<a href="https://doi.org/10.5281/zenodo.15308437"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg" alt="DOI"></a>
 
 - [About this package](#about-this-package)
 - [Documentation](#documentation)
@@ -183,7 +183,7 @@ The source can be found [on Github](https://github.com/colinbousige/optimeo), pl
     author = {Bousige, Colin},
     title = {{OPTIMEO}},
     url = {https://github.com/colinbousige/optimeo},
-    doi={10.5281/zenodo.15308438}
+    doi={10.5281/zenodo.15308437}
 }
 ```
 
