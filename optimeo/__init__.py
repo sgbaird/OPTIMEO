@@ -196,19 +196,20 @@ Also, this work was made possible thanks to the following open-source projects:
 
 - [ax](https://ax.dev/)
 - [BoTorch](https://botorch.org/)
+- [scikit-learn](https://scikit-learn.org/stable/)
 - [pyDOE3](https://github.com/relf/pyDOE3)
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
-- [scikit-learn](https://scikit-learn.org/stable/)
 
 ---
 
 ## License
 
-This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/">Creative Commons Attribution-NonCommercial 4.0 International License</a>.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-<a rel="license" href="http://creativecommons.org/licenses/by-nc/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by-nc/4.0/88x31.png" /></a>
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
 
 
 """
