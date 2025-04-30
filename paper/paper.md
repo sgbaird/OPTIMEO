@@ -36,6 +36,8 @@ performing numerical orbit integration).
 
 blalvlal
 
+# State of the Field
+
 <!-- `Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
 enables wrapping low-level languages (e.g., C) for speed without losing
 flexibility or ease-of-use in the user-interface. The API for `Gala` was
