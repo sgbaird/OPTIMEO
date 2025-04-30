@@ -160,10 +160,11 @@ class DesignOfExperiments:
         """
         Return a string representation of the DesignOfExperiments instance.
         """
+        printpar = "\n".join([str(par) for par in self.parameters])
         return f"""
 - Design of Experiments type: {self.type}
 - Parameters:
-{"\n".join([str(par) for par in self.parameters])}
+{printpar}
 - Lows: {self._lows}
 - Highs: {self._highs}
 - If applicable:
