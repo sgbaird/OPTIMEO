@@ -12,6 +12,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from optimeo.analysis import *
+from scipy.stats import t
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
                    page_icon="ressources/icon.png", 
@@ -122,8 +123,17 @@ with tabs[1]: # visual assessment
         # Scatter Plot of Response Values
         fig = st.session_state.analysis.plot_scatter_response()
         cols[3].plotly_chart(fig, key="scatter_response")
+        
+        st.write("---")
+        cols = st.columns(2)
+        fig = st.session_state.analysis.plot_corr()
+        cols[0].plotly_chart(fig, key="correlation")
+        
+        fig = st.session_state.analysis.plot_pairplot_plotly()
+        cols[1].plotly_chart(fig, key="pairplot")
 
         # Scatter Plots for Each Factor
+        st.write("---\n##### Polynomial fits")        
         cols = st.columns(ncols)
         for i, factor in enumerate(factors):
             fig = px.scatter(x=data[factor], 
@@ -155,28 +165,49 @@ with tabs[1]: # visual assessment
                     mirror=True
                 ),
             )
-            fitorder = cols[i % ncols].number_input(f"Polynomial fit order for {response} vs {factor}:",
+            fitorder = cols[i % ncols].number_input(f"Order for {response} vs {factor}:",
                                         min_value=0, value=2, max_value=10, step=1)
             # Add linear regression with red line and equation
             if dtypes[factor] != 'object':
+                x_data = data[factor]
+                y_data = data[response]
+                valid_indices = x_data.notna() & y_data.notna()
+                x_clean = x_data[valid_indices]
+                y_clean = y_data[valid_indices]
                 p = np.polyfit(data[factor], data[response], fitorder)
                 x_range = np.linspace(np.min(data[factor]), np.max(data[factor]), 100)
-                fig.add_trace(go.Scatter(x=x_range, y=np.polyval(p, x_range), 
+                y_pred = np.polyval(p, x_range)
+                # Standard error of estimate
+                y_fit = np.polyval(p, x_clean)
+                residuals = y_clean - y_fit
+                dof = len(x_clean) - 2
+                residual_std_error = np.sqrt(np.sum(residuals**2) / dof)
+
+                mean_x = np.mean(x_clean)
+                t_val = t.ppf(0.975, dof)  # 95% confidence
+
+                se_line = residual_std_error * np.sqrt(1/len(x_clean) + (x_range - mean_x)**2 / np.sum((x_clean - mean_x)**2))
+                y_upper = y_pred + t_val * se_line
+                y_lower = y_pred - t_val * se_line
+                
+                fig.add_trace(go.Scatter(x=x_range, y=y_pred, 
                                          mode='lines', 
                                          name='Polynomial Fit', 
                                          line=dict(color='red')))
+                fig.add_trace(go.Scatter(
+                                    x=np.concatenate([x_range, x_range[::-1]]),
+                                    y=np.concatenate([y_upper, y_lower[::-1]]),
+                                    fill='toself',
+                                    fillcolor='rgba(255, 0, 0, 0.2)',
+                                    line=dict(color='rgba(255, 0, 0, 0)'),
+                                    showlegend=False
+                                    )
+                              )
                 fig.update_layout(title_subtitle_text=rf'{write_poly(p)}',
                                   title_subtitle_font_size=16,
                                   showlegend=False, height=400)
 
             cols[i % ncols].plotly_chart(fig)
-        # Pairplot for all factors
-        st.write("##### Pairplot of all factors")
-        if st.button("Compute the pairplot"):
-            # Create a pairplot of the dataset
-            # Use a copy of the data to avoid modifying the original
-            fig = st.session_state.analysis.plot_pairplot()
-            st.pyplot(fig, use_container_width=True)
 
 
 with tabs[2]: # simple model

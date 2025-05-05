@@ -78,20 +78,6 @@ This app was made by [Colin Bousige](mailto:colin.bousige@cnrs.fr). Contact me f
 
 ## How to cite
 
-This work is related to the article "xxxx". Please cite this work if you publish using this code:
-
-```bibtex
-@article{xxx,
-    title = {xxx},
-    author = {xxx},
-    journal = {xxx},
-    volume = {xxx},
-    year = {xxx},
-    pages = {xxx},
-    doi = {xxx}
-}
-```
-
 The source can be found [on Github](https://github.com/colinbousige/optimeo), please consider citing as:
 
 ```bibtex

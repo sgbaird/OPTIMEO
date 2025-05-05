@@ -22,8 +22,11 @@ You can see an example notebook [here](../examples/MLanalysis.html).
 import numpy as np
 import pandas as pd
 import statsmodels.formula.api as smf
+from scipy import stats
+from scipy.stats import t
 import plotly.express as px
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from statsmodels.graphics.gofplots import qqplot
 # import ML models and scaling functions
 from sklearn.preprocessing import StandardScaler
@@ -95,8 +98,12 @@ class DataAnalysis:
         Plots a histogram for the response variable using `plotly`.
     - **plot_scatter_response()**:
         Plots a scatter plot for the response variable using `plotly`.
-    - **plot_pairplot()**:
-        Plots a pairplot for the data.
+    - **plot_corr()**:
+        Plots a correlation matrix for the data using `plotly`.
+    - **plot_pairplot_seaborn()**:
+        Plots a pairplot for the data using `seaborn`.
+    - **plot_pairplot_plotly()**:
+        Plots a pairplot for the data using `plotly`.
     - **write_equation(order=1, quadratic=[])**:
         Writes R-style equation for multivariate fitting procedure using the `statsmodels` package.
     - **compute_linear_model(order=1, quadratic=[])**:
@@ -315,7 +322,7 @@ class DataAnalysis:
             xaxis_title='Theoretical Quantiles',
             yaxis_title='Sample Quantiles',
             plot_bgcolor="white",  # White background
-            legend=dict(bgcolor='rgba(0,0,0,0)'),
+            showlegend=False,
             margin=dict(l=10, r=10, t=50, b=50),
             xaxis=dict(
                 showgrid=True,  # Enable grid
@@ -455,9 +462,9 @@ class DataAnalysis:
         )
         return fig
 
-    def plot_pairplot(self):
+    def plot_pairplot_seaborn(self):
         """
-        Plot a pairplot for the data.
+        Plot a pairplot for the data using seaborn.
 
         Returns
         -------
@@ -470,6 +477,247 @@ class DataAnalysis:
             diag_kind="kde",
             plot_kws={"scatter_kws": {"alpha": 0.1}},
         )
+        return fig
+    
+    def plot_pairplot_plotly(self):
+        """
+        Plot a pairplot for the data using plotly.
+
+        Returns
+        -------
+        fig : plotly.graph_objs.Figure
+            The plotly figure.
+        """
+        
+        # Get the column names
+        columns = self._data.columns
+        n_cols = len(columns)
+
+        # Create subplot grid with partially shared axes
+        fig = make_subplots(
+            rows=n_cols,
+            cols=n_cols,
+            shared_xaxes=True,  # We'll manually set this
+            shared_yaxes=True,  # We'll manually set this
+            vertical_spacing=0.05,  # Increase spacing to avoid overlap
+            horizontal_spacing=0.05  # Increase spacing to avoid overlap
+        )
+
+        # Add scatter plots and regression lines to each subplot
+        for i in range(n_cols):
+            for j in range(n_cols):
+                x_data = self._data[columns[j]]
+                y_data = self._data[columns[i]]
+
+                if i == j:  # Diagonal: Add KDE plot
+                    # Calculate KDE
+                    data = self._data[columns[i]].dropna()
+                    if len(data) > 1:  # Ensure enough data points
+                        kde_x = np.linspace(data.min(), data.max(), 100)
+                        kde = stats.gaussian_kde(data)
+                        kde_y = kde(kde_x)
+                        kde_y = kde_y / kde_y.max() * np.max(y_data.dropna())  # Scale to match y-axis
+
+                        # Add KDE plot to diagonal
+                        fig.add_trace(
+                            go.Scatter(
+                                x=kde_x,
+                                y=kde_y,
+                                mode='lines',
+                                fill='tozeroy',
+                                line=dict(color='rgba(29, 81, 189, 1)'),
+                                showlegend=False
+                            ),
+                            row=i+1, col=j+1
+                        )
+                        # Ensure the y-axis is independent for diagonal plots
+                        fig.update_yaxes(
+                            matches=None,  # Ensure independent y-axis
+                            showticklabels=True,  # Show y-axis values
+                            row=i+1,
+                            col=j+1
+                        )
+                else:  # Off-diagonal: Add scatter plot with regression line
+                    # Add scatter plot
+                    fig.add_trace(
+                        go.Scatter(
+                            x=x_data,
+                            y=y_data,
+                            mode='markers',
+                            marker=dict(
+                                color='rgba(29, 81, 189, 0.5)',  # Light blue with alpha=0.1
+                                size=5
+                            ),
+                            showlegend=False
+                        ),
+                        row=i+1, col=j+1
+                    )
+
+                    # Calculate and add regression line
+                    if len(x_data.dropna()) > 1 and len(y_data.dropna()) > 1:
+                        # Drop NaN values for regression calculation
+                        valid_indices = x_data.notna() & y_data.notna()
+                        x_clean = x_data[valid_indices]
+                        y_clean = y_data[valid_indices]
+
+                        if len(x_clean) > 1:  # Ensure we have enough points for regression
+                            # Calculate regression parameters
+                            slope, intercept, r_value, p_value, std_err = stats.linregress(x_clean, y_clean)
+                            x_range = np.linspace(x_clean.min(), x_clean.max(), 100)
+                            y_pred = slope * x_range + intercept
+
+                            # Standard error of estimate
+                            y_fit = slope * x_clean + intercept
+                            residuals = y_clean - y_fit
+                            dof = len(x_clean) - 2
+                            residual_std_error = np.sqrt(np.sum(residuals**2) / dof)
+
+                            mean_x = np.mean(x_clean)
+                            t_val = t.ppf(0.975, dof)  # 95% confidence
+
+                            se_line = residual_std_error * np.sqrt(1/len(x_clean) + (x_range - mean_x)**2 / np.sum((x_clean - mean_x)**2))
+                            y_upper = y_pred + t_val * se_line
+                            y_lower = y_pred - t_val * se_line
+
+                            # Add regression line
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=x_range,
+                                    y=y_pred,
+                                    mode='lines',
+                                    line=dict(color='red', width=2),
+                                    showlegend=False
+                                ),
+                                row=i+1, col=j+1
+                            )
+
+                            # Add confidence interval area
+                            fig.add_trace(
+                                go.Scatter(
+                                    x=np.concatenate([x_range, x_range[::-1]]),
+                                    y=np.concatenate([y_upper, y_lower[::-1]]),
+                                    fill='toself',
+                                    fillcolor='rgba(255, 0, 0, 0.2)',
+                                    line=dict(color='rgba(255, 0, 0, 0)'),
+                                    showlegend=False
+                                ),
+                                row=i+1, col=j+1
+                            )
+
+        # Update layout and axis properties
+        fig.update_layout(
+            margin=dict(l=10, r=10, t=50, b=50),
+            title="Pair Plot",
+            height=600,
+            width=600,
+            showlegend=False,
+            plot_bgcolor="white",
+        )
+
+        # Update all axes properties first (hiding tick labels by default)
+        fig.update_xaxes(
+            showgrid=True,
+            gridcolor="lightgray",
+            zeroline=False,
+            showline=True,         # Show axis line
+            linewidth=1,
+            linecolor="black",
+            mirror=True,           # Mirror lines to form a box
+            showticklabels=False
+        )
+
+        fig.update_yaxes(
+            showgrid=True,
+            gridcolor="lightgray",
+            zeroline=False,
+            showline=True,         # Show axis line
+            linewidth=1,
+            linecolor="black",
+            mirror=True,           # Mirror lines to form a box
+            showticklabels=False
+        )
+
+        # Show tick labels and titles only for bottom row and leftmost column
+        for i, col_name in enumerate(columns):
+            # Bottom row: show x-axis titles and tick labels
+            fig.update_xaxes(
+                title_text=col_name,
+                showticklabels=True,
+                row=n_cols,
+                col=i+1
+            )
+
+            # Leftmost column: show y-axis titles and tick labels
+            fig.update_yaxes(
+                title_text=col_name,
+                showticklabels=True,
+                row=i+1,
+                col=1
+            )
+            
+        return fig
+    
+    def plot_corr(self):
+        """
+        Plot a correlation matrix for the data.
+
+        Returns
+        -------
+        fig : seaborn.axisgrid.PairGrid
+            The pairplot figure.
+        """
+        corr_matrix = self._data.corr(method='pearson')
+        mask = np.triu(np.ones_like(corr_matrix, dtype=bool), k=1)
+        # Apply mask - replace upper triangle with NaN values
+        corr_matrix_lower = corr_matrix.copy()
+        corr_matrix_lower.values[mask] = np.nan
+        
+        fig = px.imshow(
+            corr_matrix_lower,
+            text_auto='.2f',  # Display correlation values
+            color_continuous_scale='RdBu_r',  # Red to Blue color scale (reversed)
+            zmin=-1,  # Minimum correlation value
+            zmax=1,   # Maximum correlation value
+            aspect="auto",  # Keep aspect ratio adaptive
+            title="Pearson Correlation Heatmap"
+        )
+
+        # Improve layout
+        fig.update_layout(
+            # xaxis_title="Features",
+            # yaxis_title="Features",
+            coloraxis_colorbar=dict(
+                title="Correlation",
+                tickvals=[-1, -0.5, 0, 0.5, 1],
+                ticktext=["-1", "-0.5", "0", "0.5", "1"],
+            ),
+            plot_bgcolor="white",  # White background
+            legend=dict(bgcolor='rgba(0,0,0,0)'),
+            margin=dict(l=10, r=10, t=50, b=50),
+            xaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            ),
+            yaxis=dict(
+                showgrid=True,  # Enable grid
+                gridcolor="lightgray",  # Light gray grid lines
+                zeroline=False,
+                zerolinecolor="black",  # Black zero line
+                showline=True,
+                linewidth=1,
+                linecolor="black",  # Black border
+                mirror=True
+            ), 
+            height=600,
+            width=600
+        )
+
         return fig
 
     def write_equation(self, order=1, quadratic=[]):
