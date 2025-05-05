@@ -58,17 +58,6 @@ However, none of them offers the possibility to build an experimental design fro
 Moreover, we feel they lack the user-friendliness and accessibility that we aim to provide with our clean UI, and finally, they are not available as an autonomous python package for more advanced usage.
 Such advanced usage might be required when the user wants to run the optimization loop in a high-throughput robotized lab, for example.
 
-# Architecture
-
-<!-- # Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% } -->
-
 # Acknowledgements
 
 This work was supported by the French National Research Agency (N° ANR-24-CE08-7639).
