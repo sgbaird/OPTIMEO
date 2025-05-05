@@ -611,7 +611,7 @@ class DataAnalysis:
             height=600,
             width=600,
             showlegend=False,
-            plot_bgcolor="white",
+            plot_bgcolor="white"
         )
 
         # Update all axes properties first (hiding tick labels by default)
@@ -681,7 +681,10 @@ class DataAnalysis:
             aspect="auto",  # Keep aspect ratio adaptive
             title="Pearson Correlation Heatmap"
         )
-
+        # Customize hover template
+        fig.update_traces(
+            hovertemplate='<b>%{y} vs %{x}</b><br>Correlation: %{z}<extra></extra>'
+        )
         # Improve layout
         fig.update_layout(
             # xaxis_title="Features",
@@ -701,6 +704,7 @@ class DataAnalysis:
                 zerolinecolor="black",  # Black zero line
                 showline=True,
                 linewidth=1,
+                tickangle=-45,
                 linecolor="black",  # Black border
                 mirror=True
             ),
@@ -942,7 +946,52 @@ class DataAnalysis:
         Parameters
         ----------
         kwargs : dict
-            Additional keyword arguments for the model.
+            Additional keyword arguments for the model. Overrides default parameters.
+            
+        Default Parameters by Model Type
+        --------------------------------
+        - **ElasticNetCV:**
+            - l1_ratio : list, default=[0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0].
+                List of L1 ratios to try.
+            - cv : int, default=5.
+                Cross-validation folds.
+            - max_iter : int, default=1000.
+                Maximum iterations.
+        - **RidgeCV:**
+            - alphas : list, default=[0.1, 1.0, 10.0].
+                List of alpha values to try.
+            - cv : int, default=5.
+                Cross-validation folds.
+        - **LinearRegression:**
+            - fit_intercept : bool, default=True.
+                Whether to calculate the intercept.
+        - **RandomForest:**
+            - n_estimators : int, default=100.
+                Number of trees in the forest.
+            - max_depth : int or None, default=None.
+                Maximum depth of trees.
+            - min_samples_split : int, default=2.
+                Minimum samples required to split a node.
+            - random_state : int, default=42.
+                Random seed for reproducibility.
+        - **GaussianProcess:**
+            - kernel : kernel object, default=None.
+                Kernel for the Gaussian Process.
+            - alpha : float, default=1e-10.
+                Value added to diagonal of kernel matrix.
+            - normalize_y : bool, default=True.
+                Normalize target values.
+            - random_state : int, default=42.
+                Random seed for reproducibility.
+        - **GradientBoosting:**
+            - n_estimators : int, default=100.
+                Number of boosting stages.
+            - learning_rate : float, default=0.1.
+                Learning rate.
+            - max_depth : int, default=3.
+                Maximum depth of trees.
+            - random_state : int, default=42.
+                Random seed for reproducibility.
 
         Returns
         -------
@@ -959,26 +1008,55 @@ class DataAnalysis:
                 X, y, test_size=self._split_size)
         else:
             X_train, X_test, y_train, y_test = X, X, y, y
-
+        
+        # Default parameters for each model type
+        default_params = {
+            "ElasticNetCV": {"l1_ratio": [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0],
+                            "cv": 5, 
+                            "max_iter": 1000},
+            "RidgeCV": {"alphas": [0.1, 1.0, 10.0], 
+                        "cv": 5},
+            "LinearRegression": {"fit_intercept": True},
+            "RandomForest": {"n_estimators": 100, 
+                            "max_depth": None,
+                            "min_samples_split": 2,
+                            "random_state": 42},
+            "GaussianProcess": {"kernel": None, 
+                                "alpha": 1e-10,
+                                "normalize_y": True,
+                                "random_state": 42},
+            "GradientBoosting": {"n_estimators": 100,
+                                "learning_rate": 0.1,
+                                "max_depth": 3,
+                                "random_state": 42}
+        }
+        
+        # Get default parameters for the selected model
+        model_defaults = default_params.get(self._model_type, {})
+        
+        # Override defaults with any provided kwargs
+        model_params = {**model_defaults, **kwargs}
+        
         if self._model_type == "ElasticNetCV":
             self._model = make_pipeline(StandardScaler(),
-                                        ElasticNetCV(**kwargs))
+                                        ElasticNetCV(**model_params))
         elif self._model_type == "RidgeCV":
             self._model = make_pipeline(StandardScaler(),
-                                        RidgeCV(**kwargs))
+                                        RidgeCV(**model_params))
         elif self._model_type == "LinearRegression":
             self._model = make_pipeline(StandardScaler(),
-                                        LinearRegression(**kwargs))
+                                        LinearRegression(**model_params))
         elif self._model_type == "RandomForest":
             self._model = make_pipeline(StandardScaler(),
-                                        RandomForestRegressor(**kwargs))
+                                        RandomForestRegressor(**model_params))
         elif self._model_type == "GaussianProcess":
             self._model = make_pipeline(StandardScaler(),
-                                        GaussianProcessRegressor(**kwargs))
+                                        GaussianProcessRegressor(**model_params))
         elif self._model_type == "GradientBoosting":
             self._model = make_pipeline(StandardScaler(),
-                                        GradientBoostingRegressor(**kwargs))
-        # Fit the self._model
+                                        GradientBoostingRegressor(**model_params))
+        
+        # Fit the model
         self._model.fit(X_train, y_train)
         return self._model
 
