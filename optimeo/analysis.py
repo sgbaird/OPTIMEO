@@ -497,10 +497,10 @@ class DataAnalysis:
         fig = make_subplots(
             rows=n_cols,
             cols=n_cols,
-            shared_xaxes=True,  # We'll manually set this
-            shared_yaxes=True,  # We'll manually set this
-            vertical_spacing=0.05,  # Increase spacing to avoid overlap
-            horizontal_spacing=0.05  # Increase spacing to avoid overlap
+            shared_xaxes=True,  
+            shared_yaxes=True,  
+            vertical_spacing=0.05,
+            horizontal_spacing=0.05
         )
 
         # Add scatter plots and regression lines to each subplot
@@ -516,7 +516,8 @@ class DataAnalysis:
                         kde_x = np.linspace(data.min(), data.max(), 100)
                         kde = stats.gaussian_kde(data)
                         kde_y = kde(kde_x)
-                        kde_y = kde_y / kde_y.max() * np.max(y_data.dropna())  # Scale to match y-axis
+                        # Scale to match y-axis (needed for top left corner)
+                        kde_y = kde_y / kde_y.max() * np.max(y_data.dropna())  
 
                         # Add KDE plot to diagonal
                         fig.add_trace(
@@ -531,6 +532,7 @@ class DataAnalysis:
                             row=i+1, col=j+1
                         )
                         # Ensure the y-axis is independent for diagonal plots
+                        # don't know why, doesn't work with top left corner
                         fig.update_yaxes(
                             matches=None,  # Ensure independent y-axis
                             showticklabels=True,  # Show y-axis values
@@ -545,7 +547,7 @@ class DataAnalysis:
                             y=y_data,
                             mode='markers',
                             marker=dict(
-                                color='rgba(29, 81, 189, 0.5)',  # Light blue with alpha=0.1
+                                color='rgba(29, 81, 189, 0.5)',
                                 size=5
                             ),
                             showlegend=False
@@ -619,10 +621,10 @@ class DataAnalysis:
             showgrid=True,
             gridcolor="lightgray",
             zeroline=False,
-            showline=True,         # Show axis line
+            showline=True,
             linewidth=1,
             linecolor="black",
-            mirror=True,           # Mirror lines to form a box
+            mirror=True,
             showticklabels=False
         )
 
@@ -630,10 +632,10 @@ class DataAnalysis:
             showgrid=True,
             gridcolor="lightgray",
             zeroline=False,
-            showline=True,         # Show axis line
+            showline=True,
             linewidth=1,
             linecolor="black",
-            mirror=True,           # Mirror lines to form a box
+            mirror=True,
             showticklabels=False
         )
 
@@ -687,8 +689,6 @@ class DataAnalysis:
         )
         # Improve layout
         fig.update_layout(
-            # xaxis_title="Features",
-            # yaxis_title="Features",
             coloraxis_colorbar=dict(
                 title="Correlation",
                 tickvals=[-1, -0.5, 0, 0.5, 1],
@@ -698,22 +698,22 @@ class DataAnalysis:
             legend=dict(bgcolor='rgba(0,0,0,0)'),
             margin=dict(l=10, r=10, t=50, b=50),
             xaxis=dict(
-                showgrid=True,  # Enable grid
+                showgrid=False,  # Enable grid
                 gridcolor="lightgray",  # Light gray grid lines
                 zeroline=False,
                 zerolinecolor="black",  # Black zero line
-                showline=True,
+                showline=False,
                 linewidth=1,
                 tickangle=-45,
                 linecolor="black",  # Black border
                 mirror=True
             ),
             yaxis=dict(
-                showgrid=True,  # Enable grid
+                showgrid=False,  # Enable grid
                 gridcolor="lightgray",  # Light gray grid lines
                 zeroline=False,
                 zerolinecolor="black",  # Black zero line
-                showline=True,
+                showline=False,
                 linewidth=1,
                 linecolor="black",  # Black border
                 mirror=True
