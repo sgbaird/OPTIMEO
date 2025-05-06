@@ -2,8 +2,9 @@
 # Contact: colin.bousige@cnrs.fr
 #
 # This program is free software: you can redistribute it and/or modify
-# it under the terms of the Creative Commons Attribution-NonCommercial 
-# 4.0 International License. 
+# it under the terms of the MIT License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# any later version. 
 
 import streamlit as st
 import numpy as np
@@ -311,9 +312,31 @@ with tabs[3]: # machine learning model
         features_in_log = colss[0].toggle("Log scale for features importance", 
                                           value=True, 
                                           on_change=model_changed)
-        colss[1].write("")
-        colss[1].write("")
-        colss[1].write("")
+        kwargs = colss[1].text_input('Additional parameters for the model (optional):', value='{}',
+            on_change=model_changed, 
+            help="""You can add additional parameters for the model in the form of a dictionary. 
+Default parameters will be used if you do not specify them, they are:
+- **[ElasticNetCV](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.ElasticNetCV.html)**: 
+    - `{"l1_ratio": [0.1, 0.5, 0.7, 0.9, 0.95, 0.99, 1.0], "cv": 5, "max_iter": 1000}`
+- **[RidgeCV](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RidgeCV.html)**: 
+    - `{"alphas": [0.1, 1.0, 10.0], "cv": 5}`
+- **[LinearRegression](https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LinearRegression.html)**: 
+    - `{"fit_intercept": True}`
+- **[RandomForest](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html)**: 
+    - `{"n_estimators": 100, "max_depth": None, "min_samples_split": 2, "random_state": 42}`
+- **[GaussianProcess](https://scikit-learn.org/stable/modules/gaussian_process.html)**: 
+    - `{"kernel": None, "alpha": 1e-10, "normalize_y": True, "random_state": 42}`
+- **[GradientBoosting](https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.GradientBoostingRegressor.html)**: 
+    - `{"n_estimators": 100,"learning_rate": 0.1,"max_depth": 3, "random_state": 42}`""")
+        if kwargs != "":
+            try:
+                kwargs = eval(kwargs)
+            except Exception as e:
+                st.error(f"Error in evaluating the additional parameters: {e}")
+                kwargs = {}
+        if kwargs != {} and not isinstance(kwargs, dict):
+            st.error("The additional parameters must be in the form of a dictionary.")
+            kwargs = {}
         colss[1].write("")
         if colss[1].button("Compute the machine learning model and plot the results",
                           disabled=st.session_state['model_up_to_date'],
@@ -321,7 +344,7 @@ with tabs[3]: # machine learning model
                           type="primary"):
             st.session_state.analysis.model_type = model_sel
             st.session_state.analysis.split_size = split_size
-            st.session_state.analysis.compute_ML_model()
+            st.session_state.analysis.compute_ML_model(**kwargs)
             st.session_state.modml = st.session_state.analysis.model
             st.session_state.figml = st.session_state.analysis.plot_ML_model(features_in_log)
         
