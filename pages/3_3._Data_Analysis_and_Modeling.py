@@ -111,7 +111,9 @@ For Excel-like files, the first sheet will be used, and data should start in the
                 factors.remove(name)
         else:
             st.success("Data loaded successfully.")
-        st.session_state.analysis = DataAnalysis(data, factors, response)
+        datacopy = data[factors+[response]].copy()
+        datacopy = datacopy.dropna(axis=0, how='any')
+        st.session_state.analysis = DataAnalysis(datacopy, factors, response)
         encoders = st.session_state.analysis.encoders
 
 

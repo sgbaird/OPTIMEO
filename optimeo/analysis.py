@@ -541,7 +541,7 @@ class DataAnalysis:
                             row=i+1,
                             col=j+1
                         )
-                elif i>j:  # Off-diagonal: Add scatter plot with regression line
+                else:  # Off-diagonal: Add scatter plot with regression line
                     # Add scatter plot
                     fig.add_trace(
                         go.Scatter(
@@ -563,8 +563,10 @@ class DataAnalysis:
                         valid_indices = x_data.notna() & y_data.notna()
                         x_clean = x_data[valid_indices]
                         y_clean = y_data[valid_indices]
-
-                        if len(x_clean) > 1:  # Ensure we have enough points for regression
+                        ytype = y_clean.dtype
+                        xtype = x_clean.dtype
+                        unique_x = x_clean.unique()
+                        if len(x_clean) > 1 and len(unique_x)>1 and ytype != 'object' and xtype != 'object':
                             # Calculate regression parameters
                             slope, intercept, r_value, p_value, std_err = stats.linregress(x_clean, y_clean)
                             x_range = np.linspace(x_clean.min(), x_clean.max(), 100)

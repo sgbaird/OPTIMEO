@@ -201,8 +201,10 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
                     on_change=model_changed)
         messages = []
         if data is not None and len(factors) > 0 and len(responses) > 0:
+            datacopy = data[factors+responses].copy()
+            datacopy = datacopy.dropna(axis=0, how='any')
             features, outcomes, messages = encode_data(
-                data, factors, responses, factor_ranges)
+                datacopy, factors, responses, factor_ranges)
             if len(messages) > 0:
                 key, value = list(messages.items())[0]
                 messages[key] = '⚠️   '+messages[key]
