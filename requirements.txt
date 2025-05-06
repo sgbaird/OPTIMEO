@@ -14,3 +14,4 @@ pyjanitor
 scikit_learn
 statsmodels
 xlsxwriter
+openpyxl

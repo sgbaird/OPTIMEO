@@ -20,7 +20,8 @@ setup(
         "pyjanitor",
         "scikit_learn",
         "statsmodels",
-        "xlsxwriter"
+        "xlsxwriter",
+        'openpyxl'
     ],
     author='Colin Bousige',
     author_email='colin.bousige@cnrs.fr',
