@@ -21,7 +21,8 @@ setup(
         "scikit_learn",
         "statsmodels",
         "xlsxwriter",
-        'openpyxl'
+        'openpyxl',
+        'xlrd'
     ],
     author='Colin Bousige',
     author_email='colin.bousige@cnrs.fr',
