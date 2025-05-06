@@ -320,7 +320,9 @@ The UCB is defined as:
 
 $$ UCB(x) = \\mu(x) + \\sqrt{\\beta} \\sigma(x) $$
 
-where $\\mu(x)$ is the predicted mean at point $x$, $\\sigma(x)$ is the predicted standard deviation at point $x$, and $\\beta$ is a tuning parameter that controls the balance between exploration and exploitation. A higher value of $\\beta$ will lead to more exploration, while a lower value will lead to more exploitation. The default value of $\\beta$ is 0.5, which provides a good balance between exploration and exploitation.
+where $\\mu(x)$ is the predicted mean at point $x$, $\\sigma(x)$ is the predicted standard deviation at point $x$, and $\\beta$ is a tuning parameter that controls the balance between exploration and exploitation. 
+
+A higher value of $\\beta$ will lead to more exploration, while a lower value will lead to more exploitation. The default value of $\\beta$ is 1, which provides a good balance between exploration and exploitation.
 
 """)
         if tuning:
