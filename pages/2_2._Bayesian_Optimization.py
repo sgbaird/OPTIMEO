@@ -201,10 +201,10 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
                     on_change=model_changed)
         messages = []
         if data is not None and len(factors) > 0 and len(responses) > 0:
-            datacopy = data[factors+responses].copy()
-            datacopy = datacopy.dropna(axis=0, how='any')
+            dataclean = data[factors+responses].copy()
+            dataclean = dataclean.dropna(axis=0, how='any')
             features, outcomes, messages = encode_data(
-                datacopy, factors, responses, factor_ranges)
+                dataclean, factors, responses, factor_ranges)
             if len(messages) > 0:
                 key, value = list(messages.items())[0]
                 messages[key] = '⚠️   '+messages[key]
@@ -256,14 +256,14 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         if len(fixed_features_names) > 0:
             for i,feature in enumerate(fixed_features_names):
                 if factor_types[feature] == 'object':
-                    cases = data[feature].unique()
+                    cases = dataclean[feature].unique()
                     fixed_features_values[i] = cols[(i%3)+1].selectbox(f"Value of **{feature}**:", 
                                                                     cases, 
                                                                     key=f"fixpar{i}", 
                                                                     on_change=model_changed)
                 else:
                     fixed_features_values[i] = cols[(i%3)+1].number_input(f"Value of **{feature}**:", 
-                                                                        value=np.mean(data[feature]), key=f"fixpar{i}", 
+                                                                        value=np.mean(dataclean[feature]), key=f"fixpar{i}", 
                                                                         on_change=model_changed)
         # regroup the fixed features in a dict
         fixed_features = {}

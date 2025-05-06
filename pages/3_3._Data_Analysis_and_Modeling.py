@@ -76,7 +76,7 @@ For Excel-like files, the first sheet will be used, and data should start in the
 """
         )
         conti = cont.columns([1,2,1])
-        conti[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+        conti[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format.")
     if datafile is not None:
         left,right=st.columns([1,1])
         if Path(datafile.name).suffix == '.csv':
@@ -111,9 +111,9 @@ For Excel-like files, the first sheet will be used, and data should start in the
                 factors.remove(name)
         else:
             st.success("Data loaded successfully.")
-        datacopy = data[factors+[response]].copy()
-        datacopy = datacopy.dropna(axis=0, how='any')
-        st.session_state.analysis = DataAnalysis(datacopy, factors, response)
+        dataclean = data[factors+[response]].copy()
+        dataclean = dataclean.dropna(axis=0, how='any')
+        st.session_state.analysis = DataAnalysis(dataclean, factors, response)
         encoders = st.session_state.analysis.encoders
 
 
@@ -154,8 +154,8 @@ with tabs[1]: # visual assessment
         st.write("---\n##### Polynomial fits")        
         cols = st.columns(ncols)
         for i, factor in enumerate(factors):
-            fig = px.scatter(x=data[factor], 
-                             y=data[response], 
+            fig = px.scatter(x=dataclean[factor], 
+                             y=dataclean[response], 
                              labels={'x': factor, 'y': response}, 
                              title=f'{response} vs {factor}')
             fig.update_layout(
@@ -187,13 +187,13 @@ with tabs[1]: # visual assessment
                                         min_value=0, value=2, max_value=10, step=1)
             # Add linear regression with red line and equation
             if dtypes[factor] != 'object':
-                x_data = data[factor]
-                y_data = data[response]
+                x_data = dataclean[factor]
+                y_data = dataclean[response]
                 valid_indices = x_data.notna() & y_data.notna()
-                x_clean = x_data[valid_indices]
-                y_clean = y_data[valid_indices]
-                p = np.polyfit(data[factor], data[response], fitorder)
-                x_range = np.linspace(np.min(data[factor]), np.max(data[factor]), 100)
+                x_clean = x_clean[valid_indices]
+                y_clean = y_clean[valid_indices]
+                p = np.polyfit(dataclean[factor], dataclean[response], fitorder)
+                x_range = np.linspace(np.min(dataclean[factor]), np.max(dataclean[factor]), 100)
                 y_pred = np.polyval(p, x_range)
                 # Standard error of estimate
                 y_fit = np.polyval(p, x_clean)
@@ -262,11 +262,11 @@ To remove the intercept, add `-1` at the end of the equation.""")
                 colsinput[0].write(f"<p style='text-align:right;font-size:1.1em'><b>{factor}</b></p>", unsafe_allow_html=True)
                 if dtypes[factor] == 'object':
                     # non encoded factor
-                    possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
+                    possible = np.unique(encoders[factor].inverse_transform(dataclean[factor].values))
                     Xnew[factor] = str(colsinput[1].selectbox(f"{factor}", possible, key=f"{factor}lm", label_visibility='collapsed'))
                 else:
                     Xnew[factor] = colsinput[1].number_input(f"{factor}", 
-                                                value=np.mean(data[factor]), key=f"{factor}lm", label_visibility='collapsed')
+                                                value=np.mean(dataclean[factor]), key=f"{factor}lm", label_visibility='collapsed')
             # encode the factors if they are categorical
             for i,factor in enumerate(factors):
                 if dtypes[factor] == 'object':
@@ -381,11 +381,11 @@ Default parameters will be used if you do not specify them, they are:
                 colsinput[0].write(f"<p style='text-align:right;font-size:1.1em'><b>{factor}</b></p>", unsafe_allow_html=True)
                 if dtypes[factor] == 'object':
                     # Non-encoded factor
-                    possible = np.unique(encoders[factor].inverse_transform(data[factor].values))
+                    possible = np.unique(encoders[factor].inverse_transform(dataclean[factor].values))
                     Xnew.append(str(colsinput[1].selectbox(f"{factor}", possible, key=f"{factor}ml", label_visibility='collapsed')))
                 else:
                     Xnew.append(colsinput[1].number_input(f"{factor}",
-                                                        value=np.mean(data[factor]), key=f"{factor}ml", label_visibility='collapsed'))
+                                                        value=np.mean(dataclean[factor]), key=f"{factor}ml", label_visibility='collapsed'))
 
             # Encode the factors if they are categorical
             for i, factor in enumerate(factors):
