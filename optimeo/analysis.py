@@ -174,6 +174,7 @@ class DataAnalysis:
                 le = LabelEncoder()
                 self._encoders[factor] = le
                 self._data[factor] = le.fit_transform([str(d) for d in self._data[factor]])
+        self.data = self.data[self._factors + [self._response]]
 
     @property
     def factors(self):
@@ -540,7 +541,7 @@ class DataAnalysis:
                             row=i+1,
                             col=j+1
                         )
-                else:  # Off-diagonal: Add scatter plot with regression line
+                elif i>j:  # Off-diagonal: Add scatter plot with regression line
                     # Add scatter plot
                     fig.add_trace(
                         go.Scatter(

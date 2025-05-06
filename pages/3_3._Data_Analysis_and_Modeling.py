@@ -95,7 +95,22 @@ For Excel-like files, the first sheet will be used, and data should start in the
                 available, index=len(available)-1, on_change=data_changed)]
         if len(response) > 0:
             response = response[0]
+        placeholder = st.empty()
         dtypes = data.dtypes
+        # check if factors are valid
+        messages = check_data(data, factors)
+        if len(messages) > 0:
+            key, value = list(messages.items())[0]
+            messages[key] = '⚠️   '+messages[key]
+            message = '''
+
+⚠️   '''.join(messages.values())
+            placeholder.error(message)
+            for name,messsage in messages.items():
+                # drop factors[name]
+                factors.remove(name)
+        else:
+            st.success("Data loaded successfully.")
         st.session_state.analysis = DataAnalysis(data, factors, response)
         encoders = st.session_state.analysis.encoders
 

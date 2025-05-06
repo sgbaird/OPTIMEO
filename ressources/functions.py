@@ -235,3 +235,14 @@ def update_model(features, outcomes,
 
 
 
+def check_data(data, factors):
+    """
+    Check if the data is valid.
+    """
+    features = data[factors].copy()
+    message = {}
+    for column in features.columns:
+        unique_values = features[column].unique()
+        if len(unique_values) == 1:
+            message[column] = f"Only one unique value found in **{column}**. This column will be removed from the features."
+    return message
