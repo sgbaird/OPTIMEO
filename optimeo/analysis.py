@@ -167,6 +167,7 @@ class DataAnalysis:
         """
         Called during initialization: encodes categorical variables in the data if there are any. 
         Uses `LabelEncoder()` from `sklearn` to convert categorical variables to numerical values.
+        Also drops rows with NaN values.
         """
         self._dtypes = self._data.dtypes
         for factor in self._factors:
@@ -175,6 +176,7 @@ class DataAnalysis:
                 self._encoders[factor] = le
                 self._data[factor] = le.fit_transform([str(d) for d in self._data[factor]])
         self.data = self.data[self._factors + [self._response]]
+        self.data = self.data.dropna(axis=0, how='any')
 
     @property
     def factors(self):

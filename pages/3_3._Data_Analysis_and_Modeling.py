@@ -190,8 +190,8 @@ with tabs[1]: # visual assessment
                 x_data = dataclean[factor]
                 y_data = dataclean[response]
                 valid_indices = x_data.notna() & y_data.notna()
-                x_clean = x_clean[valid_indices]
-                y_clean = y_clean[valid_indices]
+                x_clean = x_data[valid_indices]
+                y_clean = y_data[valid_indices]
                 p = np.polyfit(dataclean[factor], dataclean[response], fitorder)
                 x_range = np.linspace(np.min(dataclean[factor]), np.max(dataclean[factor]), 100)
                 y_pred = np.polyval(p, x_range)
@@ -329,7 +329,8 @@ with tabs[3]: # machine learning model
         features_in_log = colss[0].toggle("Log scale for features importance", 
                                           value=True, 
                                           on_change=model_changed)
-        kwargs = colss[1].text_input('Additional parameters for the model (optional):', value='{}',
+        kwargs = colss[1].text_area('Additional parameters for the model (optional):', 
+            value='{}', height=68,
             on_change=model_changed, 
             help="""You can add additional parameters for the model in the form of a dictionary. 
 Default parameters will be used if you do not specify them, they are:
@@ -354,7 +355,7 @@ Default parameters will be used if you do not specify them, they are:
         if kwargs != {} and not isinstance(kwargs, dict):
             st.error("The additional parameters must be in the form of a dictionary.")
             kwargs = {}
-        colss[1].write("")
+        # colss[1].write("")
         if colss[1].button("Compute the machine learning model and plot the results",
                           disabled=st.session_state['model_up_to_date'],
                           on_click=model_updated,
