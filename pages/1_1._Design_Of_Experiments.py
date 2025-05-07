@@ -16,8 +16,6 @@ from ressources.functions import *
 from optimeo.doe import *
 from datetime import datetime
 
-help = read_markdown_file("pages/help-doe.md")
-
 st.set_page_config(page_title="Design Of Experiment", 
                    page_icon="ressources/icon.png",
                    layout="wide", menu_items=about_items)
