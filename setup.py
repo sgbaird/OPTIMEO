@@ -7,7 +7,7 @@ setup(
     packages=find_packages(include=['optimeo', 'optimeo.*']),
     install_requires=[
         "streamlit",
-        "ax-platform",
+        "ax-platform==0.5.0",
         "seaborn",
         "definitive_screening_design",
         "dexpy",

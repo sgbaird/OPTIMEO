@@ -1,6 +1,6 @@
 streamlit
 seaborn
-ax-platform
+ax-platform==0.5.0
 definitive_screening_design
 dexpy
 doepy
