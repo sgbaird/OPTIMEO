@@ -164,7 +164,7 @@ The expected improvement balances exploration (trying new points with high uncer
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
         responses = resp.multiselect("Select the **response(s)** column(s):", 
-                available, max_selections=4, default=available[-1],
+                available, max_selections=10, default=available[-1],
                 on_change=model_changed)
         # add option to change type of columns
         dtypesF = data[factors].dtypes
@@ -233,9 +233,12 @@ with tabs[1]:# Bayesian Optimization
         maximize = {}
         for i in range(len(responses)):
             temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", 
-                                   horizontal=True, options=["Maximize", "Minimize"],
+                                   horizontal=True, options=["Maximize", "Minimize", "Not a metric"],
                                    on_change=model_changed)
-            maximize[responses[i]] = True if temp == "Maximize" else False
+            if temp == "Not a metric":
+                maximize[responses[i]] = None
+            else:
+                maximize[responses[i]] = True if temp == "Maximize" else False
         Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.", 
