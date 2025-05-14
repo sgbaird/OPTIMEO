@@ -194,7 +194,8 @@ def check_ranges(ranges):
 # @st.cache_data
 def update_model(features, outcomes, 
                  factor_ranges, Nexp, maximize, 
-                 fixed_features, feature_constraints, sampler, acq_function):
+                 fixed_features, feature_constraints,outcome_constraints,
+                 sampler, acq_function):
     """
     Update the model if the parameters have changed.
     """
@@ -212,7 +213,7 @@ def update_model(features, outcomes,
             ranges              = factor_ranges,
             N                   = Nexp,
             maximize            = maximize,
-            outcome_constraints = None,
+            outcome_constraints = outcome_constraints,
             fixed_features      = fixed_features,
             feature_constraints = feature_constraints,
             optim               = sampler,
@@ -229,6 +230,9 @@ def update_model(features, outcomes,
         # feature_constraints
         if feature_constraints != st.session_state['bo'].feature_constraints:
             st.session_state['bo'].feature_constraints = feature_constraints
+        # outcome_constraints
+        if outcome_constraints != st.session_state['bo'].outcome_constraints:
+            st.session_state['bo'].outcome_constraints = outcome_constraints
         # sampler
         if sampler != st.session_state['bo'].optim:
             st.session_state['bo'].optim = sampler

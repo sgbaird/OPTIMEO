@@ -231,19 +231,31 @@ with tabs[1]:# Bayesian Optimization
         containerplot = right.container(border=True)
         cols = container.columns(4)
         maximize = {}
+        non_metric_outcomes = []
         for i in range(len(responses)):
             temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", 
-                                   horizontal=True, options=["Maximize", "Minimize", "Not a metric"],
+                                   horizontal=False, 
+                                   options=["Maximize", "Minimize", "Not a metric"],
                                    on_change=model_changed)
-            if temp == "Not a metric":
-                maximize[responses[i]] = None
+            if temp == "Maximize":
+                maximize[responses[i]] = True
+            elif temp == "Minimize":
+                maximize[responses[i]] = False
             else:
-                maximize[responses[i]] = True if temp == "Maximize" else False
+                maximize[responses[i]] = None
+                non_metric_outcomes.append(responses[i])
+        nmetrics = len([v for v in maximize.values() if v is not None])
+        if nmetrics == 0:
+            st.warning("You need to select at least one metric to optimize.", icon="⚠️")
+            st.session_state['model_up_to_date'] = True
+        if nmetrics > 2:
+            st.warning("You can only optimize two metrics. The other outcomes need to be set to **Not a metric**, and you can use them to define outcome constraints.", icon="⚠️")
+            st.session_state['model_up_to_date'] = True
         Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.", 
                 on_change=model_changed)
-        samplerchoice = cols[3].selectbox("Select the generator", ["Sobol pseudo-random", "Bayesian Optimization"], help="""### Select the generator to use for the optimization.  
+        samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Sobol pseudo-random", "Bayesian Optimization"], help="""### Select the generator to use for the optimization.  
 - **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
 - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
 
@@ -253,7 +265,7 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
                         "Bayesian Optimization": 'bo'}
         # fix a parameter value
         cols = container.columns(4)
-        fixed_features_names = cols[0].multiselect("""Select the fixed parameters (if any)""", 
+        fixed_features_names = cols[3].multiselect("""Select the fixed parameters (if any)""", 
                 factors, help="Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature, for example.", on_change=model_changed)
         fixed_features_values = [None]*len(fixed_features_names)
         if len(fixed_features_names) > 0:
@@ -272,13 +284,13 @@ It is recommended to use the Sobol generator for the first few (5-10) iterations
         fixed_features = {}
         for i,feature in enumerate(fixed_features_names):
             fixed_features[feature] = fixed_features_values[i]
-                # feature_constraints += [f'{par} >= {fixparval[i]}']
-                # feature_constraints += [f'{par} <= {fixparval[i]}']
         
         # add a text input to add constraints
         cols = container.columns([2,1])
-        feature_constraints = cols[0].text_input("""Add **linear** constraints on the parameters (if any). Use a comma to separate multiple constraints.""",
-                help="""The constraints should be in the form of inequalities such as:
+        feature_constraints = cols[0].text_input("""Add **linear** constraints to the **parameters**""",
+                help="""Add **linear** constraints to the parameters. Leave blank if no constraints, and use a comma to separate multiple constraints.
+
+The constraints should be in the form of inequalities such as:
 
 - `x1 >= 0`
 - `x2 <= 10, x4 >= -0.5`
@@ -297,22 +309,24 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
         else:
             feature_constraints = []
         
-        # same for outcome_constraints (not working?)
-        # I get ValueError: Cannot constrain on objective metric. Need to to some digging.
-#         outcome_constraints = st.sidebar.text_input("""Add constraints on the outcomes (if any). Use a comma to separate multiple constraints.""",
-#                 help="""The constraints should be in the form of inequalities such as:
-# - `constrained_metric <= some_bound`""")
-#         if len(outcome_constraints)>0:
-#             outcome_constraints = outcome_constraints.replace("+", " + ")
-#             outcome_constraints = outcome_constraints.replace("<", "<=")
-#             outcome_constraints = outcome_constraints.replace(">", ">=")
-#             outcome_constraints = outcome_constraints.replace("<==", "<=")
-#             outcome_constraints = outcome_constraints.replace("<=", " <= ")
-#             outcome_constraints = outcome_constraints.replace(">==", ">=")
-#             outcome_constraints = outcome_constraints.replace(">=", " >= ")
-#             outcome_constraints = outcome_constraints.split(",")
-#         else:
-#             outcome_constraints = []
+        outcome_constraints = cols[0].text_input(f"""Add **linear** constraints to the **non metric outcome{'s' if len(non_metric_outcomes)>1 else ''}**: {', '.join(non_metric_outcomes)}""",
+                disabled = False if nmetrics > 0 and len(non_metric_outcomes) > 0 else True,
+                help="""You can add constraints to the outcomes **that are not metrics**. Leave blank if no constraints, and use a comma to separate multiple constraints.
+
+The constraints should be in the form of inequalities such as:
+`constrained_outcome <= some_bound`""", on_change=model_changed)
+        if len(outcome_constraints)>0:
+            outcome_constraints = outcome_constraints.replace("+", " + ")
+            outcome_constraints = outcome_constraints.replace("<", "<=")
+            outcome_constraints = outcome_constraints.replace(">", ">=")
+            outcome_constraints = outcome_constraints.replace("<==", "<=")
+            outcome_constraints = outcome_constraints.replace("<=", " <= ")
+            outcome_constraints = outcome_constraints.replace(">==", ">=")
+            outcome_constraints = outcome_constraints.replace(">=", " >= ")
+            outcome_constraints = outcome_constraints.split(",")
+        else:
+            outcome_constraints = []
+
         acq_function = None
         tuning = cols[1].toggle("Allow tuning Optimization vs Explotaiton?",
                                 disabled=False if Nexp==1 else True,
@@ -371,27 +385,14 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
                         colos[0].error(f"Constraint **{feature}** is invalid for the given data (see lines: {whichfails}). It was discarded.")
                         # drop feature_constraints[i]
                         feature_constraints = [f for f in feature_constraints if f != feature]
-        # check outcome_constraints
-        # if len(outcome_constraints) > 0:
-        #     constraint_results = check_constraints(data, outcome_constraints)
-        #     all_valid = all(result.all() for result in constraint_results.values())
-        #     if not all_valid:
-        #         # print which constraints are not valid
-        #         for feature, result in constraint_results.items():
-        #             if not result.all():
-        #                 whichfails = result[result == False].index.tolist()
-        #                 colos[0].error(f"Constraint **{feature}** is invalid for the given data (see lines: {whichfails}). It was discarded.")
-        #                 # drop feature_constraints[i]
-        #                 outcome_constraints = [f for f in outcome_constraints if f != feature]
         if modelbutton.button("Compute / Update model", type="primary", 
                               disabled=st.session_state['model_up_to_date'], 
                               on_click=model_updated):
             update_model(
                     features, outcomes,
                     factor_ranges, Nexp, maximize, 
-                    fixed_features, feature_constraints, 
-                    sampler_list[samplerchoice],
-                    acq_function
+                    fixed_features, feature_constraints, outcome_constraints,
+                    sampler_list[samplerchoice],acq_function
                     )
             st.session_state.plot_up_to_date = False
             st.session_state['next'] = st.session_state['bo'].suggest_next_trials()
@@ -480,7 +481,7 @@ with tabs[2]:# Predictions
         for i,f in enumerate(factors):
             if features[f]['type'] == 'float':
                 parslice[f] = cols[i%4].number_input(f"**{f}**", 
-                                                    value='min', 
+                                                    value=float(np.mean(features[f]['range'])), 
                                                     min_value=float(features[f]['range'][0]),
                                                     max_value=float(features[f]['range'][1]))
             elif features[f]['type'] == 'text':

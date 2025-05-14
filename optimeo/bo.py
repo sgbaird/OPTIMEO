@@ -14,8 +14,6 @@ You can see an example notebook [here](../examples/bo.html).
 
 """
 
-
-import streamlit as st
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=DeprecationWarning)
@@ -233,6 +231,8 @@ class BOExperiment:
         self.gs = None
         """Ax's generation strategy for the experiment."""
         self.initialize_ax_client()
+        self.Nmetrics = len(self.ax_client.objective_names)
+        """The number of metrics in the experiment."""
         self._first_initialization_done = True
         """To indicate that the first initialization is done so that we don't call `initialize_ax_client()` again."""
 
@@ -358,7 +358,7 @@ class BOExperiment:
         """
         return self._fixed_features
 
-    @outcomes.setter
+    @fixed_features.setter
     def fixed_features(self, value):
         """
         Set the fixed features of the experiment.
@@ -409,7 +409,8 @@ class BOExperiment:
         if isinstance(value, bool):
             self._maximize = {out: value for out in self.out_names}
         elif isinstance(value, dict) and len(value) == len(self._outcomes):
-            self._maximize = value
+            self._maximize = {k:v for k,v in value.items() if 
+                              (k in self.out_names and isinstance(v, bool))}
         else:
             raise ValueError("maximize must be a boolean or a list of booleans with the same length as outcomes")
         if self._first_initialization_done:
@@ -427,7 +428,7 @@ class BOExperiment:
         """
         Set the outcome constraints of the experiment with validation.
         """
-        if isinstance(value, dict):
+        if isinstance(value, str):
             self._outcome_constraints = [value]
         elif isinstance(value, list):
             self._outcome_constraints = value
@@ -572,7 +573,8 @@ Input data:
         Initialize the AxClient with the experiment's parameters, objectives, and constraints.
         """
         print('\n========   INITIALIZING MODEL   ========\n')
-        self.ax_client = AxClient(verbose_logging=False, suppress_storage_errors=True)
+        self.ax_client = AxClient(verbose_logging=False, 
+                                  suppress_storage_errors=True)
         self.parameters = []
         for name, info in self._features.items():
             if info['type'] == 'text':
@@ -595,13 +597,13 @@ Input data:
                     "bounds": [float(np.min(info['range'])),
                                float(np.max(info['range']))],
                     "value_type": "float"})
-
+        
         self.ax_client.create_experiment(
             name="bayesian_optimization",
             parameters=self.parameters,
-            objectives={self.out_names[i]:
-                ObjectiveProperties(minimize=not self._maximize[self.out_names[i]])
-                    for i in range(len(self.out_names))},
+            objectives={k: ObjectiveProperties(minimize=not v) 
+                        for k,v in self._maximize.items() 
+                        if isinstance(v, bool) and k in self._outcomes.keys()},
             parameter_constraints=self._feature_constraints,
             outcome_constraints=self._outcome_constraints,
             overwrite_existing_experiment=True
@@ -1028,7 +1030,7 @@ Input data:
         """
         if self.ax_client is None:
             self.initialize_ax_client()
-        if len(self._outcomes) == 1:
+        if self.Nmetrics == 1:
             best_parameters = self.ax_client.get_best_parameters()[0]
             best_outcomes = self.ax_client.get_best_parameters()[1]
             best_parameters.update(best_outcomes[0])
