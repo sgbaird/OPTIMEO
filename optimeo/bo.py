@@ -801,8 +801,7 @@ Input data:
             self.suggest_next_trials()
 
         cand_name = 'Candidate' if self._N == 1 else 'Candidates'
-        mname = self.out_names[0] if metricname is None else metricname
-        
+        mname = self.ax_client.objective_names[0] if metricname is None else metricname
         param_name = [name for name in self.names if name not in slice_values.keys()]
         par_numeric = [name for name in param_name if self._features[name]['type'] in ['int', 'float']]
         if len(par_numeric)==1:

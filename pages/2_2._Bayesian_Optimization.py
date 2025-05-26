@@ -255,9 +255,9 @@ with tabs[1]:# Bayesian Optimization
                 min_value=1, value=1, max_value=100, 
                 help="Number of experiments to look for the optimum response.", 
                 on_change=model_changed)
-        samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Sobol pseudo-random", "Bayesian Optimization"], help="""### Select the generator to use for the optimization.  
-- **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
+        samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Bayesian Optimization", "Sobol pseudo-random"], help="""### Select the generator to use for the optimization.  
 - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
+- **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
 
 It is recommended to use the Sobol generator for the first few (5-10) iterations, and then switch to Bayesian optimization for the last iterations.
 """, on_change=model_changed)
@@ -436,22 +436,23 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
 
         # find which parameters are not in parslice and are not in fixed_features
         not_fixed = [f for f in factors if f not in parslice and f not in fixed_features_names]
-        # count how many paramteres in not_fixed are float or int
+        # count how many parameters in not_fixed are float or int
         count = len([name for name in not_fixed if features[name]['type']=='float' or features[name]['type']=='int'])
         if st.session_state['bo'] is not None and (containerplot.button("Plot model / Update plots", type="primary",
                              on_click=plot_updated,
                              disabled=st.session_state['plot_up_to_date']) or
             st.session_state['plot_up_to_date'] == True):
+            toplot = [r for r in responses if r not in non_metric_outcomes]
             if count>0:
-                for i in range(len(responses)):
-                    figmod.append(st.session_state['bo'].plot_model(metricname=responses[i], 
+                for i in range(len(toplot)):
+                    figmod.append(st.session_state['bo'].plot_model(metricname=toplot[i], 
                                                 slice_values=parslice,
                                                 linear=False if count > 1 else True,
                                                 ))
             if len(responses) == 1:
                 figopt = st.session_state['bo'].plot_optimization_trace()
             if figmod is not None and count>0:
-                for i in range(len(responses)):
+                for i in range(len(toplot)):
                     st.plotly_chart(figmod[i], key=f"figmod{i}")
             elif figmod is not None and count==0:
                 st.warning("Can't plot a model with no free features or with no numerical features.", 
