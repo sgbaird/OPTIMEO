@@ -253,20 +253,23 @@ with tabs[1]:# Bayesian Optimization
             st.session_state['model_up_to_date'] = True
         Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
-                help="Number of experiments to look for the optimum response.", 
+                help="Number of proposed new experiments to run in parallel to look for the optimum response.", 
                 on_change=model_changed)
         samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Bayesian Optimization", "Sobol pseudo-random"], help="""### Select the generator to use for the optimization.  
+
 - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
 - **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
 
-It is recommended to use the Sobol generator for the first few (5-10) iterations, and then switch to Bayesian optimization for the last iterations.
-""", on_change=model_changed)
+It is recommended to use the Sobol generator at the early stages of the optimization process (i.e., for the first 5-10 samples), and then switch to Bayesian optimization for the later iterations.
+    """, on_change=model_changed)
         sampler_list = {"Sobol pseudo-random": 'sobol',
                         "Bayesian Optimization": 'bo'}
         # fix a parameter value
         cols = container.columns(4)
         fixed_features_names = cols[3].multiselect("""Select the fixed parameters (if any)""", 
-                factors, help="Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature, for example.", on_change=model_changed)
+                factors, help="""Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters. 
+
+For example, this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature.""", on_change=model_changed)
         fixed_features_values = [None]*len(fixed_features_names)
         if len(fixed_features_names) > 0:
             for i,feature in enumerate(fixed_features_names):
