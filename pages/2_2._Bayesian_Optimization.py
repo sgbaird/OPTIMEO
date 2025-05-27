@@ -328,7 +328,7 @@ The constraints should be in the form of inequalities such as:
             outcome_constraints = []
 
         acq_function = None
-        tuning = cols[1].toggle("Allow tuning Optimization vs Explotaiton?",
+        tuning = cols[1].toggle("Allow tuning Optimization vs Exploitation?",
                                 disabled=False if Nexp==1 else True,
                                 value=False,
                                 help="""⚠️ **This will only work for a single number of experiment**.
