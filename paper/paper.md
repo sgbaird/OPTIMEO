@@ -50,7 +50,9 @@ Genetic algorithms, on the other hand, are generally faster in terms of computat
 
 However, the trade-off between data efficiency, computation time, and experimentation time is a key consideration when choosing between these two optimization methods.
 The `OPTIMEO` package is aimed at helping scientists of any field to reach the optimum parameters of their process using the minimum amount of ressources and effort.
-Therefore, it is based on Bayesian optimization for its data efficiency: when each experiment might take one or more day to run and characterize, to minimize the number of experiments to run before reaching optimal parameterization, it is much preferable to use Bayesian optimization compared to a genetic algorithm, even if it necessitates a few more minutes to run the algorithm to find which new experiments to run.
+As a result, `OPTIMEO` relies on Bayesian optimization for its superior data efficiency.
+When each experiment can take a day or more to complete and analyze (or costs a lot of money), minimizing the total number of experiments is crucial.
+Bayesian optimization is preferred over genetic algorithms in this context, as it typically requires fewer experiments to reach optimal parameters -- even if the algorithm itself takes a few extra minutes to suggest the next experiments.
 
 There are several free and open source software that provide similar functionality to `OPTIMEO`, such as `AutoOED` [@tian_autooed_2021], `BOXVIA` [@ishii_boxvia_2022], and `MADGUI` [@bajan_madgui_2025].
 All three rely on Bayesian optimization to minimize the number of experimental evaluations, and are available via executables or source code.
