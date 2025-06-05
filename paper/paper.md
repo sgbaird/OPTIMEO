@@ -15,7 +15,7 @@ affiliations:
  - name: Universite Claude Bernard Lyon 1, CNRS, LMI UMR 5615, Villeurbanne, F-69100, France
    index: 1
    ror: 03cfem402
-date: 2025-04-30
+date: 05 June 2025
 bibliography: paper.bib
 ---
 
