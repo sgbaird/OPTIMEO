@@ -6,7 +6,6 @@ dexpy
 doepy
 matplotlib
 numpy
-optuna
 pandas
 plotly
 pyDOE3
