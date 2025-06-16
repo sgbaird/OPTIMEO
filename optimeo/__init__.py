@@ -27,10 +27,18 @@ This package was developed within the frame of an academic research project, MOF
 
 ### Installing the package
 
+Installing the package and its dependencies should take up about 1.3 GB on your hard disk, the main "heavy" dependencies being `botorch`, `scikit_learn`, `plotly`, `scipy`, `pandas` and `streamlit`.
+
+It should be easy enough with `pip`:
+
 ```bash
 git clone https://github.com/colinbousige/OPTIMEO.git
 cd OPTIMEO
-pip install . # to install OPTIMEO as a package
+# Otional: create a virtual environment
+python -m venv venv
+source venv/bin/activate # on Linux or MacOS
+# Then, install OPTIMEO as a package:
+pip install .
 ```
 
 If you did `pip install .`, you can upgrade to new a version or uninstall with:
@@ -52,6 +60,10 @@ pip uninstall optimeo
 ```bash
 git clone https://github.com/colinbousige/OPTIMEO.git
 cd OPTIMEO
+# Otional: create a virtual environment
+python -m venv venv
+source venv/bin/activate # on Linux or MacOS
+# Then, install the required packages:
 pip install -r requirements.txt # to install the required packages
 ```
 
