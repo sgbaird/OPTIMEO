@@ -985,7 +985,7 @@ Input data:
             data=self.ax_client.experiment.fetch_data(),
             primary_objective=objectives[1].metric,
             secondary_objective=objectives[0].metric,
-            absolute_metrics=self.out_names,
+            absolute_metrics=[o.metric_names[0] for o in objectives],
             num_points=20,
         )
         fig = plot_pareto_frontier(frontier)
