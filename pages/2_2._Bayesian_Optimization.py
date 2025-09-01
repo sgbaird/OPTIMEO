@@ -158,19 +158,19 @@ The expected improvement balances exploration (trying new points with high uncer
         cols = data.columns.to_numpy()
         st.dataframe(data, hide_index=False)
         mincol = 1 if 'run_order' in cols else 0
-        factors = fac.multiselect("Select the **factor(s)** column(s):", 
+        factors = fac.multiselect("Select the **parameter(s)** column(s):", 
                 data.columns, default=cols[mincol:-1],
                 on_change=model_changed)
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        responses = resp.multiselect("Select the **response(s)** column(s):", 
+        responses = resp.multiselect("Select the **outcome(s)** column(s):", 
                 available, max_selections=10, default=available[-1],
                 on_change=model_changed)
         # add option to change type of columns
         dtypesF = data[factors].dtypes
         placeholder = st.empty()
-        st.write("""##### Select the type and range of each factor
-Except for categorical factors, you can increase the ranges to allow the optimization algorithm to explore values outside the current range of measures.""")
+        st.write("""##### Select the type and range of each parameter
+Except for categorical parameters, you can increase the ranges to allow the optimization algorithm to explore values outside the current range of measures.""")
         factor_types = {factor: dtypesF[factor] for factor in factors}
         factor_ranges = {factor: [np.min(data[factor]), np.max(data[factor])] for factor in factors}
         type_choice = {'object':0, 'int64':1, 'float64':2}
@@ -223,7 +223,7 @@ Except for categorical factors, you can increase the ranges to allow the optimiz
 
 with tabs[1]:# Bayesian Optimization
     if dataf is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the parameter(s) and outcome(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
         left,right = st.columns([3,1])
         container = left.container(border=True)
@@ -235,7 +235,7 @@ with tabs[1]:# Bayesian Optimization
         for i in range(len(responses)):
             temp = cols[i%2].radio(f"Direction for **{responses[i]}**:", 
                                    horizontal=False, 
-                                   options=["Maximize", "Minimize", "Not a metric"],
+                                   options=["Maximize", "Minimize", "Not an objective"],
                                    on_change=model_changed)
             if temp == "Maximize":
                 maximize[responses[i]] = True
@@ -246,10 +246,10 @@ with tabs[1]:# Bayesian Optimization
                 non_metric_outcomes.append(responses[i])
         nmetrics = len([v for v in maximize.values() if v is not None])
         if nmetrics == 0:
-            st.warning("You need to select at least one metric to optimize.", icon="⚠️")
+            st.warning("You need to select at least one objective to optimize.", icon="⚠️")
             st.session_state['model_up_to_date'] = True
         if nmetrics > 2:
-            st.warning("You can only optimize two metrics. The other outcomes need to be set to **Not a metric**, and you can use them to define outcome constraints.", icon="⚠️")
+            st.warning("You can only optimize two ojectives. The other outcomes need to be set to **Not an objective**, and you can use them to define outcome constraints.", icon="⚠️")
             st.session_state['model_up_to_date'] = True
         Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
@@ -267,7 +267,7 @@ with tabs[1]:# Bayesian Optimization
                         "Bayesian Optimization": 'bo'}
         # fix a parameter value
         fixed_features_names = cols[3].multiselect("""Select the fixed parameters (if any)""", 
-                factors, help="""Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters. 
+                factors, help="""Select one or more parameters to fix during generation. You may want to do that if you can perform several experiments at the same time with fixed parameters. 
 
 For example, this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature.""", on_change=model_changed)
         cols = container.columns(4)
@@ -313,9 +313,9 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
         else:
             feature_constraints = []
         
-        outcome_constraints = cols[0].text_input(f"""Add **linear** constraints to the **non metric outcome{'s' if len(non_metric_outcomes)>1 else ''}**: {', '.join(non_metric_outcomes)}""",
+        outcome_constraints = cols[0].text_input(f"""Add **linear** constraints to the **outcome{'s' if len(non_metric_outcomes)>1 else ''} that are not objective**: {', '.join(non_metric_outcomes)}""",
                 disabled = False if nmetrics > 0 and len(non_metric_outcomes) > 0 else True,
-                help="""You can add constraints to the outcomes **that are not metrics**. Leave blank if no constraints, and use a comma to separate multiple constraints.
+                help="""You can add constraints to the outcomes **that are not objectives**. Leave blank if no constraints, and use a comma to separate multiple constraints.
 
 The constraints should be in the form of inequalities such as:
 `constrained_outcome <= some_bound`""", on_change=model_changed)
@@ -347,6 +347,7 @@ where $\\mu(x)$ is the predicted mean at point $x$, $\\sigma(x)$ is the predicte
 
 A higher value of $\\beta$ will lead to more exploration, while a lower value will lead to more exploitation. The default value of $\\beta$ is 1, which provides a good balance between exploration and exploitation.
 
+**If you don't really know what you are doing, just stick with the default acquisition function and switch this off.**
 """)
         if tuning:
             beta = cols[1].number_input("Tuning parameter $\\beta$", 
@@ -365,7 +366,7 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
             else:
                 st.warning("""The UCB acquisition function is only available for a single number of experiment. 
                            
-**-> Switching back to the default acquisition function, EI.**""", icon="⚠️")
+**-> Switching back to the default acquisition function, logEI.**""", icon="⚠️")
                 acq_function = None
         
         # Perform Bayesian optimization
@@ -479,7 +480,7 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
 
 with tabs[2]:# Predictions
     if dataf is None:
-        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the feature(s) and response(s) in the **Data Loading** tab.""")
+        st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the parameter(s) and outcome(s) in the **Data Loading** tab.""")
     if dataf is not None and len(factors) > 0 and len(responses) > 0:
         st.write(f"#### Select the parameters for prediction of {', '.join(responses)}")
         cols = st.columns(4)
