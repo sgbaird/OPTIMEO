@@ -9,17 +9,17 @@
 import streamlit as st
 import numpy as np
 import pandas as pd
-from ressources.functions import about_items
+from resources.functions import about_items
 from io import BytesIO
 import xlsxwriter
-from ressources.functions import *
+from resources.functions import *
 from optimeo.doe import *
 from datetime import datetime
 
 st.set_page_config(page_title="Design Of Experiment", 
-                   page_icon="ressources/icon.png",
+                   page_icon="resources/icon.png",
                    layout="wide", menu_items=about_items)
-style = read_markdown_file("ressources/style.css")
+style = read_markdown_file("resources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
 defaultParNames = ["Temperature", "ConcentrationA", "ConcentrationB", "Reaction_time",

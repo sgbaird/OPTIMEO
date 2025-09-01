@@ -13,17 +13,17 @@ warnings.simplefilter(action='ignore', category=FutureWarning)
 warnings.simplefilter(action='ignore', category=DeprecationWarning)
 warnings.simplefilter(action='ignore', category=UserWarning)
 warnings.simplefilter(action='ignore', category=RuntimeError)
-from ressources.functions import *
+from resources.functions import *
 from optimeo.bo import *
 import pandas as pd
 import numpy as np
-from ressources.functions import about_items
+from resources.functions import about_items
 
 st.set_page_config(page_title="Bayesian Optimization",
-                   page_icon="ressources/icon.png",
+                   page_icon="resources/icon.png",
                    layout="wide", menu_items=about_items)
 
-style = read_markdown_file("ressources/style.css")
+style = read_markdown_file("resources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
 if "bo" not in st.session_state:
@@ -82,7 +82,7 @@ For Excel-like files, the first sheet will be used, and data should start in the
 """
         )
             cols = st.columns([1,2,1])
-            cols[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format")
+            cols[1].image("resources/tidy_data.jpg", caption="Example of tidy data format")
         with st.expander("**Bayesian Optimization in simple terms**"):
             st.markdown("""**Bayesian optimization** is a strategy used to find the best settings or parameters for a system or model, especially when evaluating each setting is expensive or time-consuming. Here's a simple explanation:
 
@@ -145,7 +145,7 @@ The expected improvement balances exploration (trying new points with high uncer
 <br>
 """, unsafe_allow_html=True)
                 figi = st.slider('Bayesian Optimization step', 0, 15, 0,1)
-                display_figure(f'ressources/figure_{figi}.html')
+                display_figure(f'resources/figure_{figi}.html')
     if dataf is not None:
         if Path(dataf.name).suffix == '.csv':
             data = pd.read_csv(dataf)
@@ -255,21 +255,22 @@ with tabs[1]:# Bayesian Optimization
                 min_value=1, value=1, max_value=100, 
                 help="Number of proposed new experiments to run in parallel to look for the optimum response.", 
                 on_change=model_changed)
-        samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Bayesian Optimization", "Sobol pseudo-random"], help="""### Select the generator to use for the optimization.  
+#         samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Bayesian Optimization", "Sobol pseudo-random"], help="""### Select the generator to use for the optimization.  
 
-- **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
-- **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
+# - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
+# - **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
 
-It is recommended to use the Sobol generator at the early stages of the optimization process (i.e., for the first 5-10 samples), and then switch to Bayesian optimization for the later iterations.
-    """, on_change=model_changed)
+# It is recommended to use the Sobol generator at the early stages of the optimization process (i.e., for the first 5-10 samples), and then switch to Bayesian optimization for the later iterations.
+#     """, on_change=model_changed)
+        samplerchoice = "Bayesian Optimization"
         sampler_list = {"Sobol pseudo-random": 'sobol',
                         "Bayesian Optimization": 'bo'}
         # fix a parameter value
-        cols = container.columns(4)
         fixed_features_names = cols[3].multiselect("""Select the fixed parameters (if any)""", 
                 factors, help="""Select one or more features to fix during generation. You may want to do that if you can perform several experiments at the same time with a fixed parameters. 
 
 For example, this can happen if you are using a robot to make experiments with varying concentrations but fixed temperature.""", on_change=model_changed)
+        cols = container.columns(4)
         fixed_features_values = [None]*len(fixed_features_names)
         if len(fixed_features_names) > 0:
             for i,feature in enumerate(fixed_features_names):
@@ -348,11 +349,11 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
 
 """)
         if tuning:
-            beta = cols[1].slider("Tuning parameter ($\\beta=10^x$)", 
-                                min_value=-5, 
-                                max_value = 5, 
-                                value = 0,
-                                step = 1,
+            beta = cols[1].number_input("Tuning parameter $\\beta$", 
+                                min_value=0., 
+                                value = 1.0,
+                                step = 1.000,
+                                format="%0.8f",
                                 on_change = model_changed,
                                 help="""Tuning parameter for the UCB acquisition function.
 
@@ -362,7 +363,9 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
                 acq_function = {'acqf': UpperConfidenceBound, 
                                 'acqf_kwargs': {'beta': 10**beta}}
             else:
-                st.warning("The UCB acquisition function is only available for a single number of experiment. Switching back to the default acquisition function, EI.", icon="⚠️")
+                st.warning("""The UCB acquisition function is only available for a single number of experiment. 
+                           
+**-> Switching back to the default acquisition function, EI.**""", icon="⚠️")
                 acq_function = None
         
         # Perform Bayesian optimization

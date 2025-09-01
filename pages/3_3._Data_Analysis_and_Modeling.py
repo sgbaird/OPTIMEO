@@ -8,7 +8,7 @@
 
 import streamlit as st
 import numpy as np
-from ressources.functions import *
+from resources.functions import *
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -16,10 +16,10 @@ from optimeo.analysis import *
 from scipy.stats import t
 
 st.set_page_config(page_title="Data Analysis and Modeling", 
-                   page_icon="ressources/icon.png", 
+                   page_icon="resources/icon.png", 
                    layout="wide", menu_items=about_items)
 
-style = read_markdown_file("ressources/style.css")
+style = read_markdown_file("resources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
 if not 'analysis' in st.session_state:
@@ -76,7 +76,7 @@ For Excel-like files, the first sheet will be used, and data should start in the
 """
         )
         conti = cont.columns([1,2,1])
-        conti[1].image("ressources/tidy_data.jpg", caption="Example of tidy data format.")
+        conti[1].image("resources/tidy_data.jpg", caption="Example of tidy data format.")
     if datafile is not None:
         left,right=st.columns([1,1])
         if Path(datafile.name).suffix == '.csv':

@@ -1,18 +1,18 @@
 # run with "streamlit run Home.py"
 
 import streamlit as st
-from ressources.functions import *
-from ressources.functions import about_items
+from resources.functions import *
+from resources.functions import about_items
 
 st.set_page_config(
     page_title="OPTIMEO",
-    page_icon="ressources/icon.png",
+    page_icon="resources/icon.png",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items=about_items
 )
 
-style = read_markdown_file("ressources/style.css")
+style = read_markdown_file("resources/style.css")
 st.markdown(style, unsafe_allow_html=True)
 
 cols=st.columns([4,1])
@@ -20,7 +20,7 @@ cols[0].title("OPTIMEO")
 cols[0].subheader("Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration")
 cols[1].write('')
 cols[1].write('')
-cols[1].image("ressources/logo.png", width=200)
+cols[1].image("resources/logo.png", width=200)
 st.markdown("""
 <a href="https://doi.org/10.5281/zenodo.15308437"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg" alt="DOI"></a>
 [![](https://badgen.net/badge/icon/GitHub?icon=github&label)](https://github.com/colinbousige/OPTIMEO)
