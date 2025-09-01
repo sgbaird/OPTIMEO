@@ -362,7 +362,7 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
                 acq_function = {'acqf': UpperConfidenceBound, 
                                 'acqf_kwargs': {'beta': 10**beta}}
             else:
-                st.warning("The UCB acquisition function is only available for a single number of experiment.", icon="⚠️")
+                st.warning("The UCB acquisition function is only available for a single number of experiment. Switching back to the default acquisition function, EI.", icon="⚠️")
                 acq_function = None
         
         # Perform Bayesian optimization
