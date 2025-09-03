@@ -1,3 +1,3 @@
 pdoc ./optimeo --logo logo.png --docformat numpy -o ./docs
-cp ressources/logo.png ./docs/
-cp ressources/logo.png ./docs/optimeo/
+cp resources/logo.png ./docs/
+cp resources/logo.png ./docs/optimeo/

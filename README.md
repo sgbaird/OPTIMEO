@@ -214,7 +214,11 @@ Also, this work was made possible thanks to the following open-source projects:
 
 ## Contributing
 
-Contributions and bug reports are welcome! Please open an issue or make a pull request to do so.
+All contributions are welcome!
+
+Ideally, please open an issue first to discuss the feature or bugfix you plan to work on. Create a dedicated branch from main for your changes and open a pull request.
+
+For any further questions, feel free to use the issue tracker to start a discussion.
 
 ## License
 
