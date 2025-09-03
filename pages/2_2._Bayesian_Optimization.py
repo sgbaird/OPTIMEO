@@ -68,11 +68,6 @@ tabs = st.tabs(["Data Loading", "Bayesian Optimization", 'Predictions'])
 
 with tabs[0]:# Data Loading
     colos = st.columns([2,3])
-#     data = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).
-
-# For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
-#                 help="The data file should contain the factors and the response variable.",
-#                 on_change=model_changed)
     data = load_data_widget()
     if data is None:
         with st.expander("**How to format your data?**"):
@@ -223,9 +218,9 @@ with tabs[1]:# Bayesian Optimization
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the parameter(s) and outcome(s) in the **Data Loading** tab.""")
     if data is not None and len(factors) > 0 and len(responses) > 0:
         left,right = st.columns([3,1])
-        container = left.container(border=True)
-        container.write("###### Model options")
-        containerplot = right.container(border=True)
+        container = st.container(border=True)
+        container.write("#### Model options")
+        containerplot = st.container(border=True)
         cols = container.columns(4)
         maximize = {}
         non_metric_outcomes = []
@@ -368,12 +363,12 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
         
         # Perform Bayesian optimization
         colos = container.columns([6,1])
-        if samplerchoice == "Bayesian Optimization":
-            colos[0].success("**Bayesian optimization** is a probabilistic model. The results may vary slightly each time you run it.", icon=":material/info:")
-        else:
-            colos[0].warning("""You are using the **Sobol pseudo-random generator**. The results will vary each time you run it.
+#         if samplerchoice == "Bayesian Optimization":
+#             colos[0].success("**Bayesian optimization** is a probabilistic model. The results may vary slightly each time you run it.", icon=":material/info:")
+#         else:
+#             colos[0].warning("""You are using the **Sobol pseudo-random generator**. The results will vary each time you run it.
                             
-**You are _not_ performing an optimization**, but an uniform sampling of the parameter space. This is suitable for the first few iterations of the optimization (exploration), then switch to Bayesian optimization.""", icon="⚠️")
+# **You are _not_ performing an optimization**, but an uniform sampling of the parameter space. This is suitable for the first few iterations of the optimization (exploration), then switch to Bayesian optimization.""", icon="⚠️")
         modelbutton = colos[1].empty()
         plotbutton = containerplot.empty()
         plotparetobutton = containerplot.empty()
@@ -391,7 +386,10 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
                         feature_constraints = [f for f in feature_constraints if f != feature]
         if modelbutton.button("Compute / Update model", type="primary", 
                               disabled=st.session_state['model_up_to_date'], 
-                              on_click=model_updated):
+                              on_click=model_updated, 
+                              help="""⚠️ **Bayesian optimization** is a probabilistic model. 
+
+The results may vary slightly each time you run it."""):
             update_model(
                     features, outcomes,
                     factor_ranges, Nexp, maximize, 
@@ -412,8 +410,8 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
         figmod = []
         figopt = None
         # add a button to launch pareto frontiers plotting
-        containerplot.write("###### Plot options")
-        cols= containerplot.columns(2)
+        containerplot.write("#### Plot options")
+        cols= containerplot.columns([3,3,1])
         parslice = {}
         for i,f in enumerate(factors):
             if features[f]['type'] == 'float':
@@ -442,7 +440,7 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
         not_fixed = [f for f in factors if f not in parslice and f not in fixed_features_names]
         # count how many parameters in not_fixed are float or int
         count = len([name for name in not_fixed if features[name]['type']=='float' or features[name]['type']=='int'])
-        if st.session_state['bo'] is not None and (containerplot.button("Plot model / Update plots", type="primary",
+        if st.session_state['bo'] is not None and (cols[2].button("Plot model / Update plots", type="primary",
                              on_click=plot_updated,
                              disabled=st.session_state['plot_up_to_date']) or
             st.session_state['plot_up_to_date'] == True):
@@ -467,7 +465,7 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
             len(responses) >1 and
             st.session_state['plot_up_to_date'] == True and
             st.session_state['bo'].model is not None and
-            containerplot.button("Plot Pareto frontiers", type="primary",
+            cols[2].button("Plot Pareto frontiers", type="primary",
                                     disabled=st.session_state['plot_pareto_up_to_date'],
                                     on_click=plot_pareto_updated)):
             figpareto = st.session_state['bo'].plot_pareto_frontier()

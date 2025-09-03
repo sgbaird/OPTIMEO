@@ -61,9 +61,6 @@ st.write("""
 tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 'Machine Learning Model'])
 
 with tabs[0]: # data loading
-    # data = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).""", 
-    #             type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
-    #             help="The data file should contain the factors and the response variable.")
     data = load_data_widget()
     if data is None:
         cont = st.container(border=True)
