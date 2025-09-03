@@ -38,7 +38,7 @@ st.write("""
 
 design_type = st.sidebar.selectbox("Design type",
         ['Sobol sequence','Full Factorial', 'Fractional Factorial', 
-         'Definitive Screening Design', 'Space Filling Latin Hypercube', 
+         'Definitive Screening', 'Space Filling Latin Hypercube', 
          'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken', 'Central Composite'])
 
 cols = st.sidebar.columns(2)
@@ -54,6 +54,19 @@ center = (1,1)
 alpha = 'o'
 face = 'ccc'
 feature_constraints = []
+
+if design_type=='Optimal':
+    model_order = st.sidebar.selectbox("Model order:", 
+            ['linear','quadratic','cubic'], index=1)
+    if model_order == 'linear':
+        order = 1
+        minexp = Npars + 1
+    elif model_order == 'quadratic':
+        order = 2
+        minexp = int((Npars+1)*(Npars+2)/2)
+    elif model_order == 'cubic':
+        order = 3
+        minexp = int((Npars+1)*(Npars+2)*(Npars+3)/6)
 # # # # # # # # # # # # # # # # 
 tab1, tab2, tab3 = st.tabs(["How to choose the proper design?", "Parameters Ranges", "Experimental Design"])
 
@@ -273,8 +286,9 @@ with tab2:
 
 if design_type in ['Sobol sequence', 'Space Filling Latin Hypercube', 
                    'Randomized Latin Hypercube', 'Optimal']:
+    mymin = 1 if design_type!='Optimal' else minexp
     Nexp = st.sidebar.number_input("Number of experiments:",
-                                    min_value=1, max_value=1000, value = 1)
+                                    min_value=mymin, max_value=1000, value = mymin)
     feature_constraints = st.sidebar.text_input("""Add **linear** constraints on the features (if any). Use a comma to separate multiple constraints.""",
                 help="""The constraints should be in the form of inequalities such as:
 
@@ -294,17 +308,6 @@ if design_type in ['Sobol sequence', 'Space Filling Latin Hypercube',
         feature_constraints = []
 elif design_type=='Fractional Factorial':
     reduction = st.sidebar.number_input("Reduction:", min_value=2, max_value=Npars+1, value=2)
-elif design_type=='Optimal':
-    model_order = st.sidebar.selectbox("Model order:", 
-            ['quadratic','linear','cubic','constant'])
-    if model_order == 'linear':
-        order = 1
-    elif model_order == 'quadratic':
-        order = 2
-    elif model_order == 'cubic':
-        order = 3
-    else:
-        order = 0
 elif design_type=='Central Composite':
     center = st.sidebar.slider("Number of replications of the center point:",
             value=1, min_value=0, max_value=10, step=1)

@@ -97,7 +97,7 @@ Choose the page you want to use in the sidebar, and follow the instructions. Hov
 Generate a Design of Experiment (DoE) for the optimization of your process. Depending on the number of factors and levels, you can choose between different types of DoE, such as Sobol sequence, Full Factorial, Fractional Factorial, or Definitive Screening Design.
 
 **2. New experiments using Bayesian Optimization:**  
-From a previous set of experiments and their results, generate a new set of experiments to optimize your process. You can choose the sampler you want to use, depending on if you are on the early stages of the optimization and want to explore the phase space (then, choose the Sobol pseudo-random generator), or if you want to efficiently find the maximum of minimum in the response (then choose the Bayesian Optimization one).  
+From a previous set of experiments and their results, generate a new set of experiments to optimize your process. You can use up to 10 outcomes, of which 2 can be objectives (i.e. outcomes that you want to minimize or maximize) and the outcomes that are not objectives can be constrained.  
 
 **3. Data analysis and modeling:**  
 Analyze the results of your experiments and model the response of your process.
