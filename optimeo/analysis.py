@@ -15,7 +15,7 @@ The class also provides methods for plotting Q-Q plots, box plots, histograms, a
 It includes functionality for bootstrap resampling to estimate the variability of model coefficients.
 The `DataAnalysis` class is designed to be flexible and extensible, allowing users to customize the regression analysis process.
 
-You can see an example notebook [here](../examples/MLanalysis.html).
+You can see an example notebook [here](../examples/MLanalysis.ipynb).
 
 """
 

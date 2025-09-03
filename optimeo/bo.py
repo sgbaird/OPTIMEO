@@ -10,7 +10,7 @@
 This module provides a class for optimizing experiments using Bayesian Optimization (BO) with the [Ax platform](https://ax.dev/).
 It includes methods for initializing the experiment, suggesting trials, predicting outcomes, and plotting results.
 
-You can see an example notebook [here](../examples/bo.html).
+You can see an example notebook [here](../examples/bo.ipynb).
 
 """
 

@@ -139,7 +139,7 @@ The class also provides methods for plotting Q-Q plots, box plots, histograms, a
 It includes functionality for bootstrap resampling to estimate the variability of model coefficients.
 The <code><a href="#DataAnalysis">DataAnalysis</a></code> class is designed to be flexible and extensible, allowing users to customize the regression analysis process.</p>
 
-<p>You can see an example notebook <a href="../examples/MLanalysis.html">here</a>.</p>
+<p>You can see an example notebook <a href="../examples/MLanalysis.ipynb">here</a>.</p>
 </div>
 
                         <input id="mod-analysis-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
@@ -163,7 +163,7 @@ The <code><a href="#DataAnalysis">DataAnalysis</a></code> class is designed to b
 </span><span id="L-15"><a href="#L-15"><span class="linenos">  15</span></a><span class="sd">It includes functionality for bootstrap resampling to estimate the variability of model coefficients.</span>
 </span><span id="L-16"><a href="#L-16"><span class="linenos">  16</span></a><span class="sd">The `DataAnalysis` class is designed to be flexible and extensible, allowing users to customize the regression analysis process.</span>
 </span><span id="L-17"><a href="#L-17"><span class="linenos">  17</span></a>
-</span><span id="L-18"><a href="#L-18"><span class="linenos">  18</span></a><span class="sd">You can see an example notebook [here](../examples/MLanalysis.html).</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos">  18</span></a><span class="sd">You can see an example notebook [here](../examples/MLanalysis.ipynb).</span>
 </span><span id="L-19"><a href="#L-19"><span class="linenos">  19</span></a>
 </span><span id="L-20"><a href="#L-20"><span class="linenos">  20</span></a><span class="sd">&quot;&quot;&quot;</span>
 </span><span id="L-21"><a href="#L-21"><span class="linenos">  21</span></a>
@@ -271,7 +271,7 @@ The <code><a href="#DataAnalysis">DataAnalysis</a></code> class is designed to b
 </span><span id="L-123"><a href="#L-123"><span class="linenos"> 123</span></a><span class="sd">    from optimeo.analysis import * </span>
 </span><span id="L-124"><a href="#L-124"><span class="linenos"> 124</span></a>
 </span><span id="L-125"><a href="#L-125"><span class="linenos"> 125</span></a><span class="sd">    data = pd.read_csv(&#39;dataML.csv&#39;)</span>
-</span><span id="L-126"><a href="#L-126"><span class="linenos"> 126</span></a><span class="sd">    factors = data.columns[:-1]</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos"> 126</span></a><span class="sd">    factors = data.columns[:-1].tolist()</span>
 </span><span id="L-127"><a href="#L-127"><span class="linenos"> 127</span></a><span class="sd">    response = data.columns[-1]</span>
 </span><span id="L-128"><a href="#L-128"><span class="linenos"> 128</span></a><span class="sd">    analysis = DataAnalysis(data, factors, response)</span>
 </span><span id="L-129"><a href="#L-129"><span class="linenos"> 129</span></a><span class="sd">    analysis.model_type = &quot;ElasticNetCV&quot;</span>
@@ -1579,7 +1579,7 @@ The <code><a href="#DataAnalysis">DataAnalysis</a></code> class is designed to b
 </span><span id="DataAnalysis-124"><a href="#DataAnalysis-124"><span class="linenos"> 124</span></a><span class="sd">    from optimeo.analysis import * </span>
 </span><span id="DataAnalysis-125"><a href="#DataAnalysis-125"><span class="linenos"> 125</span></a>
 </span><span id="DataAnalysis-126"><a href="#DataAnalysis-126"><span class="linenos"> 126</span></a><span class="sd">    data = pd.read_csv(&#39;dataML.csv&#39;)</span>
-</span><span id="DataAnalysis-127"><a href="#DataAnalysis-127"><span class="linenos"> 127</span></a><span class="sd">    factors = data.columns[:-1]</span>
+</span><span id="DataAnalysis-127"><a href="#DataAnalysis-127"><span class="linenos"> 127</span></a><span class="sd">    factors = data.columns[:-1].tolist()</span>
 </span><span id="DataAnalysis-128"><a href="#DataAnalysis-128"><span class="linenos"> 128</span></a><span class="sd">    response = data.columns[-1]</span>
 </span><span id="DataAnalysis-129"><a href="#DataAnalysis-129"><span class="linenos"> 129</span></a><span class="sd">    analysis = DataAnalysis(data, factors, response)</span>
 </span><span id="DataAnalysis-130"><a href="#DataAnalysis-130"><span class="linenos"> 130</span></a><span class="sd">    analysis.model_type = &quot;ElasticNetCV&quot;</span>
@@ -2816,7 +2816,7 @@ Plots the machine learning model using <code>plotly</code>.</li>
 <pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn"><a href="">optimeo.analysis</a></span><span class="w"> </span><span class="kn">import</span> <span class="o">*</span> 
 
 <span class="n">data</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s1">&#39;dataML.csv&#39;</span><span class="p">)</span>
-<span class="n">factors</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+<span class="n">factors</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
 <span class="n">response</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 <span class="n">analysis</span> <span class="o">=</span> <span class="n">DataAnalysis</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">factors</span><span class="p">,</span> <span class="n">response</span><span class="p">)</span>
 <span class="n">analysis</span><span class="o">.</span><span class="n">model_type</span> <span class="o">=</span> <span class="s2">&quot;ElasticNetCV&quot;</span>

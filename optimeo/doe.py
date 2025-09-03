@@ -12,7 +12,7 @@ It supports various types of designs including Full Factorial, Sobol sequence, F
 The class allows the user to specify the parameters, their types, and values, and generates the design accordingly.
 It also provides a method to plot the design using scatter plots.
 
-You can see an example notebook [here](../examples/doe.html).
+You can see an example notebook [here](../examples/doe.ipynb).
 """
 
 

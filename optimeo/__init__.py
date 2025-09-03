@@ -110,7 +110,7 @@ You can also use the app as a Python package (see [Installation](#installation))
 
 #### For Design of Experiment
 
-A more detailed example is given in [the notebook](examples/doe.html).
+A more detailed example is given in [the notebook](https://colab.research.google.com/github/colinbousige/OPTIMEO/blob/main/notebooks/doe.ipynb).
 
 ```python
 from optimeo.doe import * 
@@ -129,7 +129,7 @@ doe
 
 #### For Bayesian Optimization
 
-A more detailed example is given in [the notebook](examples/bo.html).
+A more detailed example is given in [the notebook](https://colab.research.google.com/github/colinbousige/OPTIMEO/blob/main/notebooks/bo.ipynb).
 
 ```python
 from optimeo.bo import * 
@@ -149,13 +149,13 @@ bo.suggest_next_trials()
 
 #### For Data Analysis
 
-A more detailed example is given in [the notebook](examples/MLanalysis.html).
+A more detailed example is given in [the notebook](https://colab.research.google.com/github/colinbousige/OPTIMEO/blob/main/notebooks/MLanalysis.ipynb).
 
 ```python
 from optimeo.analysis import * 
 
 data = pd.read_csv('dataML.csv')
-factors = data.columns[:-1]
+factors = data.columns[:-1].tolist()
 response = data.columns[-1]
 analysis = DataAnalysis(data, factors, response)
 analysis.model_type = "ElasticNetCV"
