@@ -108,8 +108,6 @@ For Excel-like files, the first sheet will be used, and data should start in the
             for name,messsage in messages.items():
                 # drop factors[name]
                 factors.remove(name)
-        else:
-            st.success("Data loaded successfully.")
         dataclean = data[factors+[response]].copy()
         dataclean = dataclean.dropna(axis=0, how='any')
         st.session_state.analysis = DataAnalysis(dataclean, factors, response)

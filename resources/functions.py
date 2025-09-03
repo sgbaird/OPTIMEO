@@ -296,15 +296,11 @@ def load_data_widget():
         st.sidebar.markdown(f"💾 **Memory:** {data.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
         
         # Data management buttons
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            if st.button("🔄 Refresh"):
-                st.rerun()
-        with col2:
-            if st.button("🗑️ Clear"):
-                st.session_state.loaded_data = None
-                st.session_state.data_filename = None
-                st.rerun()
+        
+        if st.sidebar.button("🗑️ Clear"):
+            st.session_state.loaded_data = None
+            st.session_state.data_filename = None
+            st.rerun()
     
     return st.session_state.loaded_data
 
