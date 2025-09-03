@@ -271,21 +271,20 @@ def load_data_widget():
     
     # Load data button
     if uploaded_file is not None:
-        if st.sidebar.button("""Load data""", type="primary"):
-            try:
-                # Determine file type and load accordingly
-                if uploaded_file.name.endswith('.csv'):
-                    data = pd.read_csv(uploaded_file)
-                else:
-                    data = pd.read_excel(uploaded_file)
-                
-                # Store in session state
-                st.session_state.loaded_data = data
-                st.session_state.data_filename = uploaded_file.name
-                st.sidebar.success(f"✅ Loaded: {uploaded_file.name}")
-                
-            except Exception as e:
-                st.sidebar.error(f"❌ Error: {str(e)}")
+        try:
+            # Determine file type and load accordingly
+            if uploaded_file.name.endswith('.csv'):
+                data = pd.read_csv(uploaded_file)
+            else:
+                data = pd.read_excel(uploaded_file)
+            
+            # Store in session state
+            st.session_state.loaded_data = data
+            st.session_state.data_filename = uploaded_file.name
+            st.sidebar.success(f"✅ Loaded: {uploaded_file.name}")
+            
+        except Exception as e:
+            st.sidebar.error(f"❌ Error: {str(e)}")
     
     # Display current data info
     if st.session_state.loaded_data is not None:

@@ -36,13 +36,15 @@ if "model_up_to_date" not in st.session_state:
     st.session_state['model_up_to_date'] = False
 if "plot_up_to_date" not in st.session_state:
     st.session_state['plot_up_to_date'] = False
-if "plot_pareto_up_to_date" not in st.session_state:
-    st.session_state['plot_pareto_up_to_date'] = False
+if "pareto_front_up_to_date" not in st.session_state:
+    st.session_state['pareto_front_up_to_date'] = False
+if "showerror" not in st.session_state:
+    st.session_state['showerror'] = True
 
 def model_changed():
     st.session_state.model_up_to_date = False
     st.session_state.plot_up_to_date = False
-    st.session_state.plot_pareto_up_to_date = False
+    st.session_state.pareto_front_up_to_date = False
     st.session_state.bo = None
 def model_updated():
     st.session_state.model_up_to_date = True
@@ -50,8 +52,8 @@ def plot_changed():
     st.session_state.plot_up_to_date = False
 def plot_updated():
     st.session_state.plot_up_to_date = True
-def plot_pareto_updated():
-    st.session_state.plot_pareto_up_to_date = True
+def pareto_front_updated():
+    st.session_state.pareto_front_up_to_date = True
 
 
 # if "data" not in st.session_state:
@@ -461,16 +463,29 @@ The results may vary slightly each time you run it."""):
                            icon="⚠️")
             if figopt is not None:
                 st.plotly_chart(figopt, key=f"figopt")
+        colos = containerplot.columns([1,1,1,2])
         if (st.session_state['bo'] is not None and 
             len(responses) >1 and
-            st.session_state['plot_up_to_date'] == True and
+            # st.session_state['plot_up_to_date'] == True and
             st.session_state['bo'].model is not None and
-            cols[2].button("Plot Pareto frontiers", type="primary",
-                                    disabled=st.session_state['plot_pareto_up_to_date'],
-                                    on_click=plot_pareto_updated)):
-            figpareto = st.session_state['bo'].plot_pareto_frontier()
-            if figpareto is not None:
-                st.plotly_chart(figpareto, key=f"figpareto")
+            colos[0].button("Compute Pareto frontiers", 
+                           type="primary",
+                           disabled=st.session_state['pareto_front_up_to_date'],
+                           on_click=pareto_front_updated)):
+                paretofront = st.session_state['bo'].compute_pareto_frontier()        
+        if (st.session_state['bo'] is not None and 
+            len(responses) >1 and
+            st.session_state['bo'].model is not None and
+            st.session_state['pareto_front_up_to_date'] == True):
+                figpareto = None
+                if colos[1].button("Plot Pareto frontiers **with** error bars", type="primary"):
+                    figpareto = st.session_state['bo'].plot_pareto_frontier(
+                        show_error_bars=True)
+                if colos[2].button("Plot Pareto frontiers **without** error bars", type="primary"):
+                    figpareto = st.session_state['bo'].plot_pareto_frontier(
+                        show_error_bars=False)
+                if figpareto is not None:
+                    st.plotly_chart(figpareto, key="figparetoplot")
 
 
 with tabs[2]:# Predictions

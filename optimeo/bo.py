@@ -235,6 +235,8 @@ class BOExperiment:
         """The number of metrics in the experiment."""
         self._first_initialization_done = True
         """To indicate that the first initialization is done so that we don't call `initialize_ax_client()` again."""
+        self.pareto_frontier = None
+        """The Pareto frontier for multi-objective optimization experiments."""
 
     @property
     def features(self):
@@ -517,6 +519,21 @@ class BOExperiment:
 
         if self._first_initialization_done:
             self.initialize_ax_client()
+
+    @property
+    def pareto_frontier(self):
+        """
+        The Pareto frontier for multi-objective optimization experiments.
+        """
+        return self._pareto_frontier
+    
+    @pareto_frontier.setter
+    def pareto_frontier(self, value):
+        """
+        Set the Pareto frontier of the experiment.
+        """
+        self._pareto_frontier = value
+        
     
     @property
     def acq_func(self):
@@ -964,23 +981,22 @@ Input data:
         )
         return fig
 
-    def plot_pareto_frontier(self):
+    def compute_pareto_frontier(self):
         """
-        Plot the Pareto frontier for multi-objective optimization experiments.
+        Compute the Pareto frontier for multi-objective optimization experiments.
 
         Returns
         -------
-
-        plotly.graph_objects.Figure: 
-            Plotly figure of the Pareto frontier.
+        The Pareto frontier.
         """
         if self.ax_client is None:
             self.initialize_ax_client()
         if len(self._outcomes) < 2:
             print("Pareto frontier is not available for single-objective optimization.")
             return None
+        
         objectives = self.ax_client.experiment.optimization_config.objective.objectives
-        frontier = compute_posterior_pareto_frontier(
+        self.pareto_frontier = compute_posterior_pareto_frontier(
             experiment=self.ax_client.experiment,
             data=self.ax_client.experiment.fetch_data(),
             primary_objective=objectives[1].metric,
@@ -988,8 +1004,37 @@ Input data:
             absolute_metrics=[o.metric_names[0] for o in objectives],
             num_points=20,
         )
-        fig = plot_pareto_frontier(frontier)
+        return self.pareto_frontier
+    
+    def plot_pareto_frontier(self, show_error_bars=True):
+        """
+        Plot the Pareto frontier for multi-objective optimization experiments.
+
+        Parameters
+        ----------
+        show_error_bars : bool, optional
+            Whether to show error bars on the plot. Default is True.
+
+        Returns
+        -------
+        plotly.graph_objects.Figure: 
+            Plotly figure of the Pareto frontier.
+        """
+        if self.pareto_frontier is None:
+            return None
+        
+        fig = plot_pareto_frontier(self.pareto_frontier)
         fig = go.Figure(fig.data)
+        
+        # Modify traces to show/hide error bars
+        if not show_error_bars:
+            for trace in fig.data:
+                # Remove error bars by setting them to None
+                if hasattr(trace, 'error_x') and trace.error_x is not None:
+                    trace.error_x = None
+                if hasattr(trace, 'error_y') and trace.error_y is not None:
+                    trace.error_y = None
+        
         fig.update_layout(
             plot_bgcolor="white",  # White background
             legend=dict(bgcolor='rgba(0,0,0,0)'),
