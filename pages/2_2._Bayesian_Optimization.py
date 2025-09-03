@@ -307,7 +307,7 @@ If you want to add non-linear constraint like `x1^2 + x2^2 <= 5`, you should fir
         else:
             feature_constraints = []
         
-        outcome_constraints = cols[0].text_input(f"""Add **linear** constraints to the **outcome{'s' if len(non_metric_outcomes)>1 else ''} that are not objective**: {', '.join(non_metric_outcomes)}""",
+        outcome_constraints = cols[0].text_input(f"""Add **linear** constraints to the **outcomes that are not objectives**: {', '.join(non_metric_outcomes)}""",
                 disabled = False if nmetrics > 0 and len(non_metric_outcomes) > 0 else True,
                 help="""You can add constraints to the outcomes **that are not objectives**. Leave blank if no constraints, and use a comma to separate multiple constraints.
 
