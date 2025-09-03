@@ -8,13 +8,13 @@ version = "1.0"
 description = "OPTIMEO: A Python package for optimization and design of experiments"
 readme = "README.md"
 requires-python = ">=3.6"
-license = {text = "Creative Commons Attribution-NonCommercial 4.0 International License"}
+license = {text = "MIT License"}
 authors = [
     {name = "Colin Bousige", email = "colin.bousige@cnrs.fr"}
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: Creative Commons Attribution-NonCommercial 4.0 International License",
+    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
 ]
 dependencies = [
