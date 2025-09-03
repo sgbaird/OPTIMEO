@@ -61,10 +61,11 @@ st.write("""
 tabs = st.tabs(["Data Loading", "Visual Assessment", "Linear Regression Model", 'Machine Learning Model'])
 
 with tabs[0]: # data loading
-    datafile = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).""", 
-                type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
-                help="The data file should contain the factors and the response variable.")
-    if datafile is None:
+    # data = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).""", 
+    #             type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
+    #             help="The data file should contain the factors and the response variable.")
+    data = load_data_widget()
+    if data is None:
         cont = st.container(border=True)
         cont.markdown(
         """##### How to format your data?
@@ -77,22 +78,23 @@ For Excel-like files, the first sheet will be used, and data should start in the
         )
         conti = cont.columns([1,2,1])
         conti[1].image("resources/tidy_data.jpg", caption="Example of tidy data format.")
-    if datafile is not None:
+    if data is not None:
         left,right=st.columns([1,1])
-        if Path(datafile.name).suffix == '.csv':
-            data = pd.read_csv(datafile)
-        else:
-            data = pd.read_excel(datafile)
         data = clean_names(data, remove_special=True, case_type='preserve')
         cols = data.columns.to_numpy()
         st.dataframe(data, hide_index=False)
         mincol = 1 if 'run_order' in cols else 0
-        factors = left.multiselect("Select the **factors** columns:", 
+        factors = left.multiselect("Select the **parameter(s)** columns:", 
                 data.columns, default=cols[mincol:-1], on_change=data_changed)
         # response cannot be a factor, so default are all unselected columns in factor
         available = [col for col in cols if col not in factors]
-        response = [right.selectbox("Select the **response** column:", 
-                available, index=len(available)-1, on_change=data_changed)]
+        response = [right.selectbox("Select the **outcome** column:", 
+                available, index=len(available)-1, 
+                on_change=data_changed,
+                help="""The outcome is the response variable that you want to model. 
+
+**Only one outcome is supported for now**"""),
+                    ]
         if len(response) > 0:
             response = response[0]
         placeholder = st.empty()
@@ -118,9 +120,9 @@ For Excel-like files, the first sheet will be used, and data should start in the
 
 
 with tabs[1]: # visual assessment
-    if datafile is None:
+    if data is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
-    if datafile is not None and len(factors) > 0 and len(response) > 0:
+    if data is not None and len(factors) > 0 and len(response) > 0:
 
         # Set up the layout for Streamlit
         ncols = min(len(factors), 4)
@@ -229,9 +231,9 @@ with tabs[1]: # visual assessment
 
 
 with tabs[2]: # simple model
-    if datafile is None:
+    if data is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
-    if datafile is not None and len(factors) > 0 and len(response) > 0:
+    if data is not None and len(factors) > 0 and len(response) > 0:
         cols = st.columns([1,1,4])
         order = cols[0].number_input("Interactions order:", 
                                         min_value=1, value=1, 
@@ -281,9 +283,9 @@ To remove the intercept, add `-1` at the end of the equation.""")
         st.write("")
 
 with tabs[3]: # machine learning model
-    if datafile is None:
+    if data is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the features and response in the **Data Loading** tab.""")
-    if datafile is not None and len(factors) > 0 and len(response) > 0:
+    if data is not None and len(factors) > 0 and len(response) > 0:
         # Choose machine learning model
         cols = st.columns([2,3])
         with cols[0].expander("**How to choose the ML model?**"):

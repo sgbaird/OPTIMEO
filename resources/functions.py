@@ -250,3 +250,65 @@ def check_data(data, factors):
         if len(unique_values) == 1:
             message[column] = f"Only one unique value found in **{column}**. This column will be removed from the features."
     return message
+
+
+def load_data_widget():
+    """Reusable data loading widget for sidebar"""
+    st.sidebar.header("🗂️ Data Management")
+    
+    # Initialize session state
+    if 'loaded_data' not in st.session_state:
+        st.session_state.loaded_data = None
+    if 'data_filename' not in st.session_state:
+        st.session_state.data_filename = None
+    
+    # File uploader
+    uploaded_file = st.sidebar.file_uploader(
+        "Choose a file", 
+        type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
+        key="persistent_uploader"
+    )
+    
+    # Load data button
+    if uploaded_file is not None:
+        if st.sidebar.button("""Load data""", type="primary"):
+            try:
+                # Determine file type and load accordingly
+                if uploaded_file.name.endswith('.csv'):
+                    data = pd.read_csv(uploaded_file)
+                else:
+                    data = pd.read_excel(uploaded_file)
+                
+                # Store in session state
+                st.session_state.loaded_data = data
+                st.session_state.data_filename = uploaded_file.name
+                st.sidebar.success(f"✅ Loaded: {uploaded_file.name}")
+                
+            except Exception as e:
+                st.sidebar.error(f"❌ Error: {str(e)}")
+    
+    # Display current data info
+    if st.session_state.loaded_data is not None:
+        data = st.session_state.loaded_data
+        st.sidebar.markdown("---")
+        st.sidebar.markdown("**Current Dataset:**")
+        st.sidebar.markdown(f"📄 **File:** {st.session_state.data_filename}")
+        st.sidebar.markdown(f"📊 **Shape:** {data.shape[0]:,} rows × {data.shape[1]} columns")
+        st.sidebar.markdown(f"💾 **Memory:** {data.memory_usage(deep=True).sum() / 1024**2:.1f} MB")
+        
+        # Data management buttons
+        col1, col2 = st.sidebar.columns(2)
+        with col1:
+            if st.button("🔄 Refresh"):
+                st.rerun()
+        with col2:
+            if st.button("🗑️ Clear"):
+                st.session_state.loaded_data = None
+                st.session_state.data_filename = None
+                st.rerun()
+    
+    return st.session_state.loaded_data
+
+def get_loaded_data():
+    """Simple function to get loaded data from session state"""
+    return st.session_state.get('loaded_data', None)

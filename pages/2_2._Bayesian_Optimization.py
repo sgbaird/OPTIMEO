@@ -68,12 +68,13 @@ tabs = st.tabs(["Data Loading", "Bayesian Optimization", 'Predictions'])
 
 with tabs[0]:# Data Loading
     colos = st.columns([2,3])
-    dataf = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).
+#     data = st.sidebar.file_uploader("""Upload data file (csv, xls, xlsx, xlsm, xlsb, odf, ods or odt).
 
-For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
-                help="The data file should contain the factors and the response variable.",
-                on_change=model_changed)
-    if dataf is None:
+# For Excel-like files, make sure the data start in the A1 cell.""", type=["csv",'xlsx','xls', 'xlsm', 'xlsb', 'odf', 'ods', 'odt'],
+#                 help="The data file should contain the factors and the response variable.",
+#                 on_change=model_changed)
+    data = load_data_widget()
+    if data is None:
         with st.expander("**How to format your data?**"):
             st.markdown(
                 """The data must be in tidy format, meaning that each column is a variable and each row is an observation. We usually place the factors in the first columns and the response(s) in the last column(s). Data type can be float, integer, or text, and you can only specify one response. Spaces and special characters in the column names will be automatically removed. The first row of the file will be used as the header.
@@ -146,11 +147,7 @@ The expected improvement balances exploration (trying new points with high uncer
 """, unsafe_allow_html=True)
                 figi = st.slider('Bayesian Optimization step', 0, 15, 0,1)
                 display_figure(f'resources/figure_{figi}.html')
-    if dataf is not None:
-        if Path(dataf.name).suffix == '.csv':
-            data = pd.read_csv(dataf)
-        else:
-            data = pd.read_excel(dataf)
+    if data is not None:
         data = clean_names(data, remove_special=True, case_type='preserve')
         left, right = st.columns([3,2])
         resp = right.empty()
@@ -222,9 +219,9 @@ Except for categorical parameters, you can increase the ranges to allow the opti
 
 
 with tabs[1]:# Bayesian Optimization
-    if dataf is None:
+    if data is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the parameter(s) and outcome(s) in the **Data Loading** tab.""")
-    if dataf is not None and len(factors) > 0 and len(responses) > 0:
+    if data is not None and len(factors) > 0 and len(responses) > 0:
         left,right = st.columns([3,1])
         container = left.container(border=True)
         container.write("###### Model options")
@@ -479,9 +476,9 @@ A higher value of $\\beta$ will lead to more exploration, while a lower value wi
 
 
 with tabs[2]:# Predictions
-    if dataf is None:
+    if data is None:
         st.warning("""The data is not yet loaded. Please upload a data file in the **Sidebar** and select the parameter(s) and outcome(s) in the **Data Loading** tab.""")
-    if dataf is not None and len(factors) > 0 and len(responses) > 0:
+    if data is not None and len(factors) > 0 and len(responses) > 0:
         st.write(f"#### Select the parameters for prediction of {', '.join(responses)}")
         cols = st.columns(4)
         # add a button to launch predictions
