@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "optimeo"
+version = "1.0"
+description = "OPTIMEO: A Python package for optimization and design of experiments"
+readme = "README.md"
+requires-python = ">=3.6"
+license = {text = "Creative Commons Attribution-NonCommercial 4.0 International License"}
+authors = [
+    {name = "Colin Bousige", email = "colin.bousige@cnrs.fr"}
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Creative Commons Attribution-NonCommercial 4.0 International License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "streamlit",
+    "ax-platform==0.5.0",
+    "seaborn",
+    "definitive_screening_design",
+    "dexpy",
+    "doepy",
+    "matplotlib",
+    "numpy",
+    "pandas",
+    "plotly",
+    "pyDOE3",
+    "pyjanitor",
+    "scikit_learn",
+    "statsmodels",
+    "xlsxwriter",
+    "openpyxl",
+    "xlrd",
+]
+
+[project.urls]
+Homepage = "https://github.com/colinbousige/OPTIMEO"
+Repository = "https://github.com/colinbousige/OPTIMEO"
+
+[tool.setuptools.packages.find]
+include = ["optimeo*"]
+
+

@@ -22,8 +22,8 @@ bibliography: paper.bib
 # Summary
 
 We present `OPTIMEO`, an Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration.
-`OPTIMEO` is a python package doubled by a web application that helps the user optimize their experimental process by generating a design of experiment (DoE), generating new experiments using Bayesian optimization, and analyzing/predicting the results of their experiments using machine learning (ML) models.
-The package and the web application are designed to be user-friendly and accessible to researchers and students alike, providing a powerful tool for optimizing experimental processes in various research fields.
+`OPTIMEO` is a web application that helps the user optimize their experimental process by generating a design of experiment (DoE), generating new experiments using Bayesian optimization, and analyzing/predicting the results of their experiments using machine learning (ML) models. It can also be used as a Python package for more advanced usage, but it is not its main purpose.
+The web application is designed to be user-friendly and accessible to researchers and students alike, providing a powerful tool for optimizing experimental processes in various research fields.
 The Bayesian optimization part is based on the `ax-platform` package [@bakshy_ae_2018], which in turn is based on `BoTorch` [@balandat_botorch_2020].
 It therefore allows for numerical and categorical variables, as well as multi-objective optimization.
 To use the web application, no knowledge of python is required: the user can run it on the streamlit.io web page, [https://optimeo.streamlit.app/](https://optimeo.streamlit.app/), or run it locally on their machine for better performance.

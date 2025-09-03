@@ -86,6 +86,8 @@ streamlit run Home.py
 git clone https://github.com/colinbousige/OPTIMEO.git
 cd OPTIMEO
 pip install . # to install OPTIMEO as a package
+chmod +x bin/optimeo
+ln -s $(pwd)/bin/optimeo /usr/local/bin/optimeo # or any folder in your PATH
 ```
 
 So now, you just have to run `optimeo` in your terminal to run the app.
