@@ -123,7 +123,7 @@ class DataAnalysis:
     from optimeo.analysis import * 
 
     data = pd.read_csv('dataML.csv')
-    factors = data.columns[:-1]
+    factors = data.columns[:-1].tolist()
     response = data.columns[-1]
     analysis = DataAnalysis(data, factors, response)
     analysis.model_type = "ElasticNetCV"

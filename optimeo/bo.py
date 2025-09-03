@@ -670,8 +670,8 @@ Input data:
                                 model=Models.BOTORCH_MODULAR,
                                 num_trials=-1,  # No limitation on how many trials should be produced from this step
                                 max_parallelism=3,  # Parallelism limit for this step, often lower than for Sobol
-                                model_kwargs={"botorch_acqf_class": self.acq_func['acqf'],
-                                              "acquisition_options": self.acq_func['acqf_kwargs']}
+                                model_configs={"botorch_model_class": self.acq_func['acqf']},
+                                model_gen_options={"acquisition_options": self.acq_func['acqf_kwargs']}
                             )
                         ]
                     )

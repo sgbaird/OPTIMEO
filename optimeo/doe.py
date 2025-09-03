@@ -458,7 +458,7 @@ class DesignOfExperiments:
                                                   alpha=self.alpha,
                                                   face=self.face)
         else:
-            raise Warning("Unknown design type. Must be one of: 'Full Factorial', 'Sobol sequence', 'Fractional Factorial', 'Definitive Screening', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken' or 'Central Composite'.")
+            raise ValueError("Unknown design type. Must be one of: 'Full Factorial', 'Sobol sequence', 'Fractional Factorial', 'Definitive Screening', 'Space Filling Latin Hypercube', 'Randomized Latin Hypercube', 'Optimal', 'Plackett-Burman', 'Box-Behnken' or 'Central Composite'.")
 
         for par in self.parameters:
             if par['type'] == "Categorical" and self.type != 'Sobol sequence':
