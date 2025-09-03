@@ -222,6 +222,8 @@ with tabs[1]:# Bayesian Optimization
         left,right = st.columns([3,1])
         container = st.container(border=True)
         container.write("#### Model options")
+        if len(responses) > 2:
+            container.info("You have defined more than two outcomes. Know that you can only optimize up to **two** ojectives using this web app. The other outcomes need to be set to **Not an objective**, and you can use them to define outcomes constraints. If you really want to optimize more than two ojectives at once: first, ask yourself if this is really needed for your process. If it is, then either write your own code using the package version of OPTIMEO (as it handles more than two objectives), or contact the author to make an update to the web app.", icon="ℹ️")
         containerplot = st.container(border=True)
         cols = container.columns(4)
         maximize = {}
@@ -240,22 +242,15 @@ with tabs[1]:# Bayesian Optimization
                 non_metric_outcomes.append(responses[i])
         nmetrics = len([v for v in maximize.values() if v is not None])
         if nmetrics == 0:
-            st.warning("You need to select at least one objective to optimize.", icon="⚠️")
+            cols[0].warning("You need to select at least one objective to optimize.", icon="⚠️")
             st.session_state['model_up_to_date'] = True
         if nmetrics > 2:
-            st.warning("You can only optimize two ojectives. The other outcomes need to be set to **Not an objective**, and you can use them to define outcome constraints.", icon="⚠️")
+            cols[0].warning("You can only optimize up to two objectives at once.", icon="⚠️")
             st.session_state['model_up_to_date'] = True
         Nexp = cols[2].number_input("Number of new experiments", 
                 min_value=1, value=1, max_value=100, 
                 help="Number of proposed new experiments to run in parallel to look for the optimum response.", 
                 on_change=model_changed)
-#         samplerchoice = cols[3].selectbox(":red[Select the generator]", ["Bayesian Optimization", "Sobol pseudo-random"], help="""### Select the generator to use for the optimization.  
-
-# - **Bayesian Optimization:** Bayesian optimization. This will tend to exploit the parameter space more (exploitation).  
-# - **Sobol pseudo-random:** Sobol sequence generator. This will tend to explore the parameter space more uniformly (exploration).
-
-# It is recommended to use the Sobol generator at the early stages of the optimization process (i.e., for the first 5-10 samples), and then switch to Bayesian optimization for the later iterations.
-#     """, on_change=model_changed)
         samplerchoice = "Bayesian Optimization"
         sampler_list = {"Sobol pseudo-random": 'sobol',
                         "Bayesian Optimization": 'bo'}
@@ -330,6 +325,8 @@ The constraints should be in the form of inequalities such as:
                                 disabled=False if Nexp==1 else True,
                                 value=False,
                                 help="""⚠️ **This will only work for a single number of experiment**.
+                                
+⚠️ **If you don't really know what you are doing, just stick with the default acquisition function and switch this off.**
 
 By default, the acquisition function that is used is the logarithm of the Expected Improvement (EI), providing a good balance between exploration and exploitation. If you check this box, the acquisition function will be the Upper Confidence Bound (UCB), which allows you to tune the balance between exploration and exploitation.
 
@@ -341,7 +338,6 @@ where $\\mu(x)$ is the predicted mean at point $x$, $\\sigma(x)$ is the predicte
 
 A higher value of $\\beta$ will lead to more exploration, while a lower value will lead to more exploitation. The default value of $\\beta$ is 1, which provides a good balance between exploration and exploitation.
 
-**If you don't really know what you are doing, just stick with the default acquisition function and switch this off.**
 """)
         if tuning:
             beta = cols[1].number_input("Tuning parameter $\\beta$", 
