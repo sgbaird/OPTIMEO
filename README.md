@@ -2,7 +2,7 @@
 [![status](https://joss.theoj.org/papers/5df5fbe4e131d230b13fb3c98db545d8/status.svg)](https://joss.theoj.org/papers/5df5fbe4e131d230b13fb3c98db545d8)
 [![Documentation](https://github.com/colinbousige/OPTIMEO/actions/workflows/build-docs.yml/badge.svg)](https://colinbousige.github.io/OPTIMEO/optimeo.html)
 
-# OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
+# OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="resources/logo.png" width="100"/>
 
 - [About this package](#about-this-package)
 - [Documentation](#documentation)
