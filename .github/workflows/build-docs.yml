@@ -1,4 +1,4 @@
-name: Generate Documentation
+name: Documentation
 
 on:
   push:
@@ -39,9 +39,15 @@ jobs:
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/build/html
+          path: ./docs  # Use the correct path where your docs are generated
 
-      - name: Deploy GitHub Pages site
+  deploy:
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-  
