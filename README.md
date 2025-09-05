@@ -1,9 +1,8 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15308438.svg)](https://doi.org/10.5281/zenodo.15308437)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg)](https://doi.org/10.5281/zenodo.15308437)
 [![status](https://joss.theoj.org/papers/5df5fbe4e131d230b13fb3c98db545d8/status.svg)](https://joss.theoj.org/papers/5df5fbe4e131d230b13fb3c98db545d8)
+[![Documentation](https://github.com/colinbousige/OPTIMEO/actions/workflows/build-docs.yml/badge.svg)](https://colinbousige.github.io/OPTIMEO/optimeo.html)
 
 # OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="ressources/logo.png" width="100"/>
-
-<a href="https://doi.org/10.5281/zenodo.15308437"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg" alt="DOI"></a>
 
 - [About this package](#about-this-package)
 - [Documentation](#documentation)
@@ -216,14 +215,6 @@ Also, this work was made possible thanks to the following open-source projects:
 - [dexpy](https://statease.github.io/dexpy/)
 - [doepy](https://doepy.readthedocs.io/en/latest/)
 - [definitive-screening-design](https://pypi.org/project/definitive-screening-design/)
-
-## Contributing
-
-All contributions are welcome!
-
-Ideally, please open an issue first to discuss the feature or bugfix you plan to work on. Create a dedicated branch from main for your changes and open a pull request.
-
-For any further questions, feel free to use the issue tracker to start a discussion.
 
 ## License
 
