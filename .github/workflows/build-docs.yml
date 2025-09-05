@@ -24,9 +24,11 @@ jobs:
         with:
           python-version: '3.11'  # Use your preferred Python version
 
+      - name: Install the project
+        run: pip install .
+
       - name: Install pdoc
-        run: |
-          pip install pdoc numpy
+        run: pip install pdoc
 
       - name: Generate documentation
         run: |
