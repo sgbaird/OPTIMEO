@@ -4,22 +4,6 @@
 
 # OPTIMEO – Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration <img src="resources/logo.png" width="100"/>
 
-- [About this package](#about-this-package)
-- [Documentation](#documentation)
-- [Installation](#installation)
-    - [Installing the package](#installing-the-package)
-    - [Using the web app](#using-the-web-app)
-- [Usage](#usage)
-  - [With the web app](#with-the-web-app)
-  - [With the Python package](#with-the-python-package)
-    - [For Design of Experiment](#for-design-of-experiment)
-    - [For Bayesian Optimization](#for-bayesian-optimization)
-    - [For Data Analysis](#for-data-analysis)
-- [Support](#support)
-- [How to cite](#how-to-cite)
-- [Acknowledgements](#acknowledgements)
-- [License](#license)
-
 ## About this package
 
 [OPTIMEO](https://optimeo.streamlit.app/) is a package doubled by a web application that helps you optimize your experimental process by generating a Design of Experiment, generating new experiments using Bayesian Optimization (BO), and analyzing the results of your experiments using Machine Learning models.
@@ -30,7 +14,7 @@ This package was developed within the frame of an academic research project, MOF
 
 ## Documentation
 
-The package documentation is available on the [GitHub page of the app](https://colinbousige.github.io/OPTIMEO/optimeo.html)
+The package documentation is available [here](https://colinbousige.github.io/OPTIMEO/optimeo.html).
 
 ## Installation
 
