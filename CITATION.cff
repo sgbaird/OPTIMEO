@@ -4,8 +4,7 @@
 cff-version: 1.2.0
 title: OPTIMEO
 message: >-
-  Optimization Platform for Tuning, Inference, Modeling,
-  Exploration, and Orchestration
+  Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes
 type: software
 authors:
   - given-names: Colin

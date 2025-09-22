@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "optimeo"
 version = "1.0"
-description = "OPTIMEO: A Python package for optimization and design of experiments"
+description = "OPTIMEO: Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes"
 readme = "README.md"
 requires-python = ">=3.6"
 license = {text = "MIT License"}
