@@ -1,5 +1,5 @@
 ---
-title: 'OPTIMEO: Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes'
+title: 'OPTIMEO: Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration'
 tags:
   - Python
   - Bayesian Optimization
@@ -21,7 +21,7 @@ bibliography: paper.bib
 
 # Summary
 
-We present `OPTIMEO`, a Bayesian Optimization web application for Tuning, Modeling, and Orchestrating Processes.
+We present `OPTIMEO`, a Bayesian optimization web app for process tuning, modeling, and orchestration.
 `OPTIMEO` is a web application that helps the user optimize their experimental process by generating a design of experiment (DoE), generating new experiments using Bayesian optimization, and analyzing/predicting the results of their experiments using machine learning (ML) models. It can also be used as a Python package for more advanced usage, but it is not its main purpose.
 The web application is designed to be user-friendly and accessible to researchers and students alike, providing a powerful tool for optimizing experimental processes in various research fields.
 The Bayesian optimization part is based on the `ax-platform` package [@bakshy_ae_2018], which in turn is based on `BoTorch` [@balandat_botorch_2020].

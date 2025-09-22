@@ -3,7 +3,7 @@
 [![Tests](https://github.com/colinbousige/OPTIMEO/actions/workflows/python-app.yml/badge.svg)](https://github.com/colinbousige/OPTIMEO/actions/workflows/python-app.yml)
 [![Documentation](https://github.com/colinbousige/OPTIMEO/actions/workflows/build-docs.yml/badge.svg)](https://colinbousige.github.io/OPTIMEO/optimeo.html)
 
-# OPTIMEO – Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes <img src="resources/logo.png" width="100"/>
+# OPTIMEO – Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration <img src="resources/logo.png" width="100"/>
 
 ## About this package
 

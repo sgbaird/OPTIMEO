@@ -17,7 +17,7 @@ st.markdown(style, unsafe_allow_html=True)
 
 cols=st.columns([4,1])
 cols[0].title("OPTIMEO")
-cols[0].subheader("Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes")
+cols[0].subheader("Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration")
 cols[1].write('')
 cols[1].write('')
 cols[1].image("resources/logo.png", width=200)

@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="dcterms.date" content="2025-04-30">
+<meta name="dcterms.date" content="2025-06-05">
 
-<title>OPTIMEO: Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration</title>
+<title>OPTIMEO: Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -3074,7 +3074,7 @@ vertical-align: -.125em;
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">OPTIMEO: Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration</h1>
+<h1 class="title">OPTIMEO: Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration</h1>
 </div>
 
 
@@ -3087,7 +3087,7 @@ vertical-align: -.125em;
   </div>
   <div class="quarto-title-meta-contents">
         <p class="affiliation">
-            Universite Claude Bernard Lyon 1, CNRS, LMI UMR 5615, Villeurbanne, F-69100, France
+            1
           </p>
       </div>
   </div>
@@ -3098,7 +3098,7 @@ vertical-align: -.125em;
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">April 30, 2025</p>
+      <p class="date">June 5, 2025</p>
     </div>
   </div>
   
@@ -3112,7 +3112,7 @@ vertical-align: -.125em;
 
 <section id="summary" class="level1">
 <h1>Summary</h1>
-<p>We present <code>OPTIMEO</code>, an Optimization Platform for Tuning, Inference, Modeling, Exploration, and Orchestration. <code>OPTIMEO</code> is a python package doubled by a web application that helps the user optimize their experimental process by generating a design of experiment (DoE), generating new experiments using Bayesian optimization, and analyzing/predicting the results of their experiments using machine learning (ML) models. The package and the web application are designed to be user-friendly and accessible to researchers and students alike, providing a powerful tool for optimizing experimental processes in various research fields. The Bayesian optimization part is based on the <code>ax-platform</code> package <span class="citation" data-cites="bakshy_ae_2018">(<a href="#ref-bakshy_ae_2018" role="doc-biblioref">Bakshy et al. 2018</a>)</span>, which in turn is based on <code>BoTorch</code> <span class="citation" data-cites="balandat_botorch_2020">(<a href="#ref-balandat_botorch_2020" role="doc-biblioref">Balandat et al. 2020</a>)</span>. It therefore allows for numerical and categorical variables, as well as multi-objective optimization. To use the web application, no knowledge of python is required: the user can run it on the streamlit.io web page, <a href="https://optimeo.streamlit.app/">https://optimeo.streamlit.app/</a>, or run it locally on their machine for better performance. The user can simply (1) select the desired options to generate a DoE; or (2) upload their data and perform Bayesian optimization to look for optimal parameters to minimize/maximize their experimental response; or (3) upload their data and plot it, assess possible correlations between variables, as well as run various regression models using <code>scikit-learn</code> <span class="citation" data-cites="pedregosa_scikitlearn_2011">(<a href="#ref-pedregosa_scikitlearn_2011" role="doc-biblioref">Pedregosa et al. 2011</a>)</span> to make predictions and analyze the importance of each feature on their experimental process. Extensive yet accessible descriptions of the different options are provided in the web application to help the user understand what they are doing. Using the package in python is also possible and it offers more versatility, like the possibility to make an optimization loop (in case experiments and their characterizations are done by a robot, for example) or to provide more parameters to the ML models – the heavy lifting is done under the hood by the package (e.g. categorical variables encoding and decoding, data formatting, normalizations, workflows, etc.).</p>
+<p>We present <code>OPTIMEO</code>, a Bayesian optimization web app for process tuning, modeling, and orchestration. <code>OPTIMEO</code> is a web application that helps the user optimize their experimental process by generating a design of experiment (DoE), generating new experiments using Bayesian optimization, and analyzing/predicting the results of their experiments using machine learning (ML) models. It can also be used as a Python package for more advanced usage, but it is not its main purpose. The web application is designed to be user-friendly and accessible to researchers and students alike, providing a powerful tool for optimizing experimental processes in various research fields. The Bayesian optimization part is based on the <code>ax-platform</code> package <span class="citation" data-cites="bakshy_ae_2018">(<a href="#ref-bakshy_ae_2018" role="doc-biblioref">Bakshy et al. 2018</a>)</span>, which in turn is based on <code>BoTorch</code> <span class="citation" data-cites="balandat_botorch_2020">(<a href="#ref-balandat_botorch_2020" role="doc-biblioref">Balandat et al. 2020</a>)</span>. It therefore allows for numerical and categorical variables, as well as multi-objective optimization. To use the web application, no knowledge of python is required: the user can run it on the streamlit.io web page, <a href="https://optimeo.streamlit.app/">https://optimeo.streamlit.app/</a>, or run it locally on their machine for better performance. The user can simply (1) select the desired options to generate a DoE; or (2) upload their data and perform Bayesian optimization to look for optimal parameters to minimize/maximize their experimental response; or (3) upload their data and plot it, assess possible correlations between variables, as well as run various regression models using <code>scikit-learn</code> <span class="citation" data-cites="pedregosa_scikitlearn_2011">(<a href="#ref-pedregosa_scikitlearn_2011" role="doc-biblioref">Pedregosa et al. 2011</a>)</span> to make predictions and analyze the importance of each feature on their experimental process. Extensive yet accessible descriptions of the different options are provided in the web application to help the user understand what they are doing. Using the package in python is also possible and it offers more versatility, like the possibility to make an optimization loop (in case experiments and their characterizations are done by a robot, for example) or to provide more parameters to the ML models – the heavy lifting is done under the hood by the package (e.g. categorical variables encoding and decoding, data formatting, normalizations, workflows, etc.).</p>
 </section>
 <section id="statement-of-need" class="level1">
 <h1>Statement of need</h1>

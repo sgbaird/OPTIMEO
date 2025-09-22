@@ -8,7 +8,7 @@
 # from . import doe
 
 """
-# OPTIMEO – Bayesian Optimization web app for Tuning, Modeling, and Orchestrating Processes
+# OPTIMEO – Bayesian Optimization Web App for Process Tuning, Modeling, and Orchestration
 
 [![](https://badgen.net/badge/icon/GitHub?icon=github&label)](https://github.com/colinbousige/OPTIMEO)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15308437.svg)](https://doi.org/10.5281/zenodo.15308437)
