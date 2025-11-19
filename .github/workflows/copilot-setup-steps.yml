@@ -24,4 +24,4 @@ jobs:
           cache: "pip"
       - name: Install package and dev dependencies
         run: |
-          pip install -r requirements.txt
+          pip install -e .
